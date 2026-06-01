@@ -1,7 +1,8 @@
 <?php
 // includes/header.php
 $pageTitle = $pageTitle ?? 'StrathHousing';
-
+require_once $_SERVER['DOCUMENT_ROOT'] . '/SU-housing/includes/config.php';
+$pageTitle = $pageTitle ?? 'StrathHousing';
 // Base path — update this if your folder name ever changes
 define('BASE_PATH', '/SU-housing');
 ?>
