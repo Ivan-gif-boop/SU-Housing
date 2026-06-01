@@ -15,31 +15,31 @@ $roleLabel    = $userRole === 'admin' ? 'Administrator' : 'Student';
 // ── Nav structure ──
 $studentNav = [
   'Overview' => [
-    ['icon' => '⊞',  'label' => 'Dashboard',    'href' => '/strathhousing/student/dashboard.php',  'key' => 'dashboard'],
+    ['icon' => '⊞',  'label' => 'Dashboard',    'href' => '/SU-housing/student/dashboard.php',  'key' => 'dashboard'],
   ],
   'Accommodation' => [
-    ['icon' => '🔍', 'label' => 'Browse Hostels','href' => '/strathhousing/student/browse.php',     'key' => 'browse'],
+    ['icon' => '🔍', 'label' => 'Browse Hostels','href' => '/SU-housing/student/browse.php',     'key' => 'browse'],
   ],
   'My Activity' => [
-    ['icon' => '💬', 'label' => 'My Inquiries',  'href' => '/strathhousing/student/inquiries.php',  'key' => 'inquiries', 'badge' => ''],
-    ['icon' => '📝', 'label' => 'My Feedback',   'href' => '/strathhousing/student/feedback.php',   'key' => 'feedback'],
+    ['icon' => '💬', 'label' => 'My Inquiries',  'href' => '/SU-housing/student/inquiries.php',  'key' => 'inquiries', 'badge' => ''],
+    ['icon' => '📝', 'label' => 'My Feedback',   'href' => '/SU-housing/student/feedback.php',   'key' => 'feedback'],
   ],
   'Account' => [
-    ['icon' => '👤', 'label' => 'My Profile',    'href' => '/strathhousing/student/profile.php',    'key' => 'profile'],
+    ['icon' => '👤', 'label' => 'My Profile',    'href' => '/SU-housing/student/profile.php',    'key' => 'profile'],
   ],
 ];
 
 $adminNav = [
   'Overview' => [
-    ['icon' => '⊞',  'label' => 'Dashboard',      'href' => '/strathhousing/admin/dashboard.php',  'key' => 'dashboard'],
+    ['icon' => '⊞',  'label' => 'Dashboard',      'href' => '/SU-housing/admin/dashboard.php',  'key' => 'dashboard'],
   ],
   'Management' => [
-    ['icon' => '🏠', 'label' => 'Manage Listings', 'href' => '/strathhousing/admin/listings.php',   'key' => 'listings'],
-    ['icon' => '💬', 'label' => 'Inquiries',        'href' => '/strathhousing/admin/inquiries.php',  'key' => 'inquiries', 'badge' => ''],
-    ['icon' => '📋', 'label' => 'Feedback',         'href' => '/strathhousing/admin/feedback.php',   'key' => 'feedback',  'badge' => ''],
+    ['icon' => '🏠', 'label' => 'Manage Listings', 'href' => '/SU-housing/admin/listings.php',   'key' => 'listings'],
+    ['icon' => '💬', 'label' => 'Inquiries',        'href' => '/SU-housing/admin/inquiries.php',  'key' => 'inquiries', 'badge' => ''],
+    ['icon' => '📋', 'label' => 'Feedback',         'href' => '/SU-housing/admin/feedback.php',   'key' => 'feedback',  'badge' => ''],
   ],
   'Account' => [
-    ['icon' => '👤', 'label' => 'Profile',          'href' => '/strathhousing/admin/profile.php',    'key' => 'profile'],
+    ['icon' => '👤', 'label' => 'Profile',          'href' => '/SU-housing/admin/profile.php',    'key' => 'profile'],
   ],
 ];
 
@@ -60,7 +60,7 @@ $nav = $userRole === 'admin' ? $adminNav : $studentNav;
       <div class="sidebar-logo">
         <div class="sidebar-logo-mark"><span>S</span></div>
         <div class="sidebar-logo-text">
-          StrathHousing
+          SU-housing
           <small>Accommodation Portal</small>
         </div>
       </div>
@@ -91,7 +91,7 @@ $nav = $userRole === 'admin' ? $adminNav : $studentNav;
 
     <!-- User footer -->
     <div class="sidebar-footer">
-      <a href="/strathhousing/<?php echo $userRole === 'admin' ? 'admin' : 'student'; ?>/profile.php"
+      <a href="/SU-housing/<?php echo $userRole === 'admin' ? 'admin' : 'student'; ?>/profile.php"
          class="user-pill">
         <div class="user-avatar"><?php echo $avatarLetter; ?></div>
         <div class="user-info">

@@ -1,9 +1,9 @@
 <?php
 // includes/header.php
-// Usage: include this at the top of every page.
-// $pageTitle should be set before including, e.g. $pageTitle = "Dashboard";
-
 $pageTitle = $pageTitle ?? 'StrathHousing';
+
+// Base path — update this if your folder name ever changes
+define('BASE_PATH', '/SU-housing');
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -12,10 +12,9 @@ $pageTitle = $pageTitle ?? 'StrathHousing';
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title><?php echo htmlspecialchars($pageTitle); ?> — StrathHousing</title>
 
-  <!-- CSS load order matters: variables first, then base, then components, then layout -->
-  <link rel="stylesheet" href="/strathhousing/assets/css/variables.css"/>
-  <link rel="stylesheet" href="/strathhousing/assets/css/base.css"/>
-  <link rel="stylesheet" href="/strathhousing/assets/css/components.css"/>
-  <link rel="stylesheet" href="/strathhousing/assets/css/layout.css"/>
+  <link rel="stylesheet" href="<?php echo BASE_PATH; ?>/assets/css/variables.css"/>
+  <link rel="stylesheet" href="<?php echo BASE_PATH; ?>/assets/css/base.css"/>
+  <link rel="stylesheet" href="<?php echo BASE_PATH; ?>/assets/css/components.css"/>
+  <link rel="stylesheet" href="<?php echo BASE_PATH; ?>/assets/css/layout.css"/>
 </head>
 <body>

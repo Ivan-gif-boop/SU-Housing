@@ -9,6 +9,6 @@
   </div><!-- end #main-content -->
 </div><!-- end #app -->
 
-<script src="/strathhousing/assets/js/main.js"></script>
+<script src="/SU-housing/assets/js/main.js"></script>
 </body>
 </html>
