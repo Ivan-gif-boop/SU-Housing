@@ -9,18 +9,26 @@ $error     = $error   ?? null;
 $success   = $success ?? null;
 
 $programmes = [
-  'Bachelor of Business Information Technology',
+  'Bachelor of Science in Tourism Management',
+  'Bachelor of Science in Hospitality Management',
+  'Bachelor of Business Science: Financial Engineering',
+  'Bachelor of Business Science: Financial Economics',
+  'Bachelor of Business Science: Acturial Science',
   'Bachelor of Science in Informatics and Computer Science',
-  'Bachelor of Commerce',
+  'Bachelor of Business Information Technology',
   'Bachelor of Laws',
   'Bachelor of Arts in Communication',
-  'Bachelor of Science in Actuarial Science',
-  'Bachelor of Science in Mathematics',
-  'Bachelor of Arts in Journalism',
-  'Bachelor of Science in Electrical Engineering',
-  'Bachelor of Science in Civil Engineering',
+  'Bachelor of Arts in International Studies',
+  'Bachelor of Arts in Development Studies and Philosophy',
+  'Bachelor of Science in Supply Chain and Operations Management',
+  'Bachelor of Financial Services',
+  'Bachelor of Science in Electrical and Electronics Engineering',
+  'BSc in Statisctics and Data Science',
+  'Bachelor of Commerce',
+  'Diploma in International Relations',
+  'Diploma in Business Management',
   'Diploma in Business Information Technology',
-  'Diploma in Supply Chain Management',
+  'Diploma in Business Creation and Entrepreneurship',
 ];
 ?>
 <!DOCTYPE html>
