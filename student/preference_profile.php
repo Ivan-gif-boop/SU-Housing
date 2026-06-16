@@ -322,10 +322,9 @@ include '../includes/sidebar.php';
           Save Profile
         </button>
         
-          href="/SU-housing/student/browse.php"
+          <a href="/SU-housing/student/browse.php"
           class="btn btn-ghost btn-lg"
-          id="skipBtn"
-        >
+          id="skipBtn" >
           Skip for Now
         </a>
       </div>
