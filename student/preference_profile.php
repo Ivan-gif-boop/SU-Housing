@@ -67,25 +67,6 @@ include '../includes/sidebar.php';
       </div>
     <?php endif; ?>
   </div>
-<script>
-document.getElementById('preferenceForm')
-  .addEventListener('submit', function(e) {
-
-  // Budget validation — max must be >= min if both entered
-  const min = parseFloat(document.getElementById('budgetMin').value) || 0;
-  const max = parseFloat(document.getElementById('budgetMax').value) || 0;
-  const errBudget = document.getElementById('err-budget');
-
-  if (min && max && max < min) {
-    errBudget.textContent =
-      'Maximum budget must be greater than minimum budget.';
-    e.preventDefault();
-    return;
-  }
-
-  errBudget.textContent = '';
-});
-</script>
   <div class="page-body">
 
     <?php if ($isPostRegistration): ?>
@@ -354,3 +335,22 @@ document.getElementById('preferenceForm')
   </div><!-- end page-body -->
 
 <?php include '../includes/footer.php'; ?>
+<script>
+document.getElementById('preferenceForm')
+  .addEventListener('submit', function(e) {
+
+  // Budget validation — max must be >= min if both entered
+  const min = parseFloat(document.getElementById('budgetMin').value) || 0;
+  const max = parseFloat(document.getElementById('budgetMax').value) || 0;
+  const errBudget = document.getElementById('err-budget');
+
+  if (min && max && max < min) {
+    errBudget.textContent =
+      'Maximum budget must be greater than minimum budget.';
+    e.preventDefault();
+    return;
+  }
+
+  errBudget.textContent = '';
+});
+</script>
