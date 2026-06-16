@@ -490,3 +490,107 @@ td {
   max-width: 360px;
   animation: fadeUp 0.3s ease;
 }
+/* ════════════════════════════════
+   PREFERENCE PROFILE
+════════════════════════════════ */
+.pref-section {
+  max-width: 680px;
+}
+
+.pref-field {
+  margin-bottom: 24px;
+}
+
+.pref-field:last-child {
+  margin-bottom: 0;
+}
+
+.pref-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--gray-800);
+  margin-bottom: 10px;
+}
+
+.pref-select {
+  max-width: 260px;
+}
+
+/* ── Custom radio buttons ── */
+.radio-group {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.radio-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--gray-800);
+  padding: 9px 16px;
+  border-radius: var(--radius);
+  border: 1.5px solid var(--gray-200);
+  background: var(--white);
+  transition: all var(--transition);
+  user-select: none;
+}
+
+.radio-option:hover {
+  border-color: var(--amber);
+  background: var(--amber-pale);
+}
+
+.radio-option input[type="radio"] {
+  display: none;
+}
+
+.radio-box {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid var(--gray-300);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: border-color var(--transition);
+}
+
+.radio-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--amber);
+  display: none;
+}
+
+/* Checked state */
+.radio-option input[type="radio"]:checked ~ .radio-box {
+  border-color: var(--amber);
+}
+
+.radio-option input[type="radio"]:checked ~ .radio-box .radio-dot {
+  display: block;
+}
+
+.radio-option:has(input[type="radio"]:checked) {
+  border-color: var(--amber);
+  background: var(--amber-pale);
+  color: var(--navy);
+  font-weight: 500;
+}
+
+/* ── Form actions row ── */
+.pref-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  max-width: 680px;
+  margin-top: 8px;
+}
+
+/* ── mb utility ── */
+.mb-16 { margin-bottom: 16px; }

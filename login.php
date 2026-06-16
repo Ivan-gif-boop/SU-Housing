@@ -1,8 +1,4 @@
 <?php
-// login.php
-// Backend hook: your partner will add session/auth logic here.
-// $error = "Invalid email or password."; — she sets this on failed login.
-
 $pageTitle = 'Sign In';
 $error     = $error ?? null;
 ?>
@@ -32,8 +28,9 @@ $error     = $error ?? null;
       <div class="verified-badge">University Verified Accommodation</div>
       <h1>Find Verified Student Housing <em>Near Campus</em></h1>
       <p>
-        The official Strathmore University portal for discovering and
-        accessing approved hostels and apartments around the Madaraka campus.
+        The official Strathmore University portal for discovering
+        and accessing approved hostels and apartments around the
+        Madaraka campus.
       </p>
     </div>
 
@@ -62,31 +59,37 @@ $error     = $error ?? null;
     <div class="auth-card">
 
       <h2>Welcome back</h2>
-      <p class="auth-subtitle">Sign in to your StrathHousing account.</p>
+      <p class="auth-subtitle">
+        Sign in with your Strathmore admission number.
+      </p>
 
-      <!-- PHP error message hook -->
       <?php if ($error): ?>
-        <div class="auth-alert error">⚠️ <?php echo htmlspecialchars($error); ?></div>
+        <div class="auth-alert error">
+          ⚠️ <?php echo htmlspecialchars($error); ?>
+        </div>
       <?php endif; ?>
 
-      <!-- Login form -->
-      <!-- Backend: action="login.php" method="POST" — your partner fills this in -->
-      <form action="#" method="POST">
+      <!--
+        Backend hook:
+        action="/SU-housing/api/auth/login.php" method="POST"
+      -->
+      <form action="#" method="POST" id="loginForm" novalidate>
 
         <div class="form-group">
-          <label for="email">Email Address</label>
+          <label for="admission_no">Admission Number</label>
           <div class="input-wrap">
-            <span class="input-icon">✉</span>
+            <span class="input-icon">🎓</span>
             <input
-              type="email"
-              id="email"
-              name="email"
+              type="text"
+              id="admission_no"
+              name="admission_no"
               class="form-control"
-              placeholder="yourname@strathmore.edu"
+              placeholder="e.g. 176830"
               required
-              autocomplete="email"
+              autocomplete="username"
             />
           </div>
+          <div class="form-error" id="err-admission_no"></div>
         </div>
 
         <div class="form-group">
@@ -103,10 +106,13 @@ $error     = $error ?? null;
               autocomplete="current-password"
             />
           </div>
+          <div class="form-error" id="err-password"></div>
         </div>
 
-        <div style="display:flex; justify-content:flex-end; margin-top:-10px; margin-bottom:20px;">
-          <a href="#" style="font-size:13px; color:var(--amber); font-weight:500;">
+        <div style="display:flex; justify-content:flex-end;
+                    margin-top:-8px; margin-bottom:20px;">
+          <a href="#"
+             style="font-size:13px;color:var(--amber);font-weight:500;">
             Forgot password?
           </a>
         </div>
@@ -118,13 +124,55 @@ $error     = $error ?? null;
       </form>
 
       <div class="auth-switch">
-        New student? <a href="/SU-housing/register.php">Create an account</a>
+        New student?
+        <a href="/SU-housing/register.php">Create an account</a>
       </div>
 
     </div>
   </div>
 
-</div><!-- end .auth-page -->
+</div>
+
+<script>
+const loginForm = document.getElementById('loginForm');
+
+function showError(fieldId, msg) {
+  const el  = document.getElementById('err-' + fieldId);
+  const inp = document.getElementById(fieldId);
+  if (el)  el.textContent = msg;
+  if (inp) inp.classList.add('is-error');
+}
+
+function clearError(fieldId) {
+  const el  = document.getElementById('err-' + fieldId);
+  const inp = document.getElementById(fieldId);
+  if (el)  el.textContent = '';
+  if (inp) inp.classList.remove('is-error');
+}
+
+['admission_no', 'password'].forEach(id => {
+  const el = document.getElementById(id);
+  if (el) el.addEventListener('input', () => clearError(id));
+});
+
+loginForm.addEventListener('submit', function(e) {
+  let valid = true;
+
+  const adm = document.getElementById('admission_no').value.trim();
+  if (!adm) {
+    showError('admission_no', 'Admission number is required.');
+    valid = false;
+  }
+
+  const pw = document.getElementById('password').value;
+  if (!pw) {
+    showError('password', 'Password is required.');
+    valid = false;
+  }
+
+  if (!valid) e.preventDefault();
+});
+</script>
 
 </body>
 </html>

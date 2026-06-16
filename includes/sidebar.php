@@ -21,12 +21,15 @@ $studentNav = [
     ['icon' => '🔍', 'label' => 'Browse Hostels','href' => BASE_PATH . '/student/browse.php',     'key' => 'browse'],
   ],
   'My Activity' => [
-    ['icon' => '💬', 'label' => 'My Inquiries',  'href' => BASE_PATH . '/student/inquiries.php',  'key' => 'inquiries', 'badge' => ''],
-    ['icon' => '📝', 'label' => 'My Feedback',   'href' => BASE_PATH . '/student/feedback.php',   'key' => 'feedback'],
-  ],
-  'Account' => [
-    ['icon' => '👤', 'label' => 'My Profile',    'href' => BASE_PATH . '/student/profile.php',    'key' => 'profile'],
-  ],
+  ['icon' => '📝', 'label' => 'My Feedback',
+   'href' => '/SU-housing/student/feedback.php',   'key' => 'feedback'],
+],
+'Account' => [
+  ['icon' => '⚙️', 'label' => 'My Preferences',
+   'href' => '/SU-housing/student/preference_profile.php', 'key' => 'preferences'],
+  ['icon' => '👤', 'label' => 'My Profile',
+   'href' => '/SU-housing/student/profile.php',    'key' => 'profile'],
+],
 ];
 
 $adminNav = [

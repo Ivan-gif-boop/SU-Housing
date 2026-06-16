@@ -1,12 +1,27 @@
 <?php
 // register.php
-// Backend hook: your partner adds form processing logic here.
-// $error   = "Email already registered."; — she sets on duplicate
-// $success = "Account created. Please sign in."; — she sets on success
+// Backend hook: partner adds POST processing logic above this line.
+// $error   = "Admission number already registered.";
+// $success = "Account created. Please sign in.";
 
 $pageTitle = 'Create Account';
 $error     = $error   ?? null;
 $success   = $success ?? null;
+
+$programmes = [
+  'Bachelor of Business Information Technology',
+  'Bachelor of Science in Informatics and Computer Science',
+  'Bachelor of Commerce',
+  'Bachelor of Laws',
+  'Bachelor of Arts in Communication',
+  'Bachelor of Science in Actuarial Science',
+  'Bachelor of Science in Mathematics',
+  'Bachelor of Arts in Journalism',
+  'Bachelor of Science in Electrical Engineering',
+  'Bachelor of Science in Civil Engineering',
+  'Diploma in Business Information Technology',
+  'Diploma in Supply Chain Management',
+];
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -35,8 +50,8 @@ $success   = $success ?? null;
       <h1>Join <em>Thousands</em> of Strathmore Students</h1>
       <p>
         Create your free account to access verified hostel listings,
-        submit inquiries directly to the Dean of Students office,
-        and track your accommodation search in one place.
+        get preference-matched recommendations, and submit feedback
+        directly to the Dean of Students office.
       </p>
     </div>
 
@@ -62,48 +77,51 @@ $success   = $success ?? null;
 
   <!-- ── Right: Register form ── -->
   <div class="auth-right">
-    <div class="auth-card" style="max-width:460px;">
+    <div class="auth-card" style="max-width: 460px;">
 
       <h2>Create your account</h2>
-      <p class="auth-subtitle">Students only. Use your Strathmore email.</p>
+      <p class="auth-subtitle">
+        Students only. You will need your admission number.
+      </p>
 
       <!-- PHP messages -->
       <?php if ($error): ?>
-        <div class="auth-alert error">⚠️ <?php echo htmlspecialchars($error); ?></div>
+        <div class="auth-alert error">
+          ⚠️ <?php echo htmlspecialchars($error); ?>
+        </div>
       <?php endif; ?>
       <?php if ($success): ?>
-        <div class="auth-alert success">✓ <?php echo htmlspecialchars($success); ?></div>
+        <div class="auth-alert success">
+          ✓ <?php echo htmlspecialchars($success); ?>
+        </div>
       <?php endif; ?>
 
-      <!-- Register form -->
-      <!-- Backend: action="register.php" method="POST" — partner fills in -->
-      <form action="#" method="POST">
+      <!--
+        Backend:
+        - Change action to "register.php" method="POST"
+        - Partner validates: admission number format (6 digits),
+          uniqueness check against users table, bcrypt password hash
+        - On success: INSERT into users, redirect to preference_profile.php
+        - On failure: set $error and re-render page
+      -->
+      <form action="#" method="POST" id="registerForm" novalidate>
 
-        <div class="form-row">
-          <div class="form-group">
-            <label for="first_name">First Name</label>
-            <input
-              type="text"
-              id="first_name"
-              name="first_name"
-              class="form-control"
-              placeholder="John"
-              required
-            />
-          </div>
-          <div class="form-group">
-            <label for="last_name">Last Name</label>
-            <input
-              type="text"
-              id="last_name"
-              name="last_name"
-              class="form-control"
-              placeholder="Doe"
-              required
-            />
-          </div>
+        <!-- Full Name -->
+        <div class="form-group">
+          <label for="full_name">Full Name</label>
+          <input
+            type="text"
+            id="full_name"
+            name="full_name"
+            class="form-control"
+            placeholder="e.g. Michelle Wangui"
+            required
+            autocomplete="name"
+          />
+          <div class="form-error" id="err-full_name"></div>
         </div>
 
+        <!-- Admission Number -->
         <div class="form-group">
           <label for="admission_no">Admission Number</label>
           <div class="input-wrap">
@@ -113,43 +131,62 @@ $success   = $success ?? null;
               id="admission_no"
               name="admission_no"
               class="form-control"
-              placeholder="176XXX"
+              placeholder="e.g. 176830"
               required
+              maxlength="10"
+              autocomplete="off"
             />
           </div>
-          <div class="form-hint">Your 6-digit Strathmore admission number</div>
+          <div class="form-hint">
+            Must be a valid admission number (e.g. 6 digits)
+          </div>
+          <div class="form-error" id="err-admission_no"></div>
         </div>
 
+        <!-- Programme -->
         <div class="form-group">
-          <label for="reg_email">Email Address</label>
-          <div class="input-wrap">
-            <span class="input-icon">✉</span>
-            <input
-              type="email"
-              id="reg_email"
-              name="email"
-              class="form-control"
-              placeholder="yourname@strathmore.edu"
-              required
-            />
-          </div>
+          <label for="programme">Programme of Study</label>
+          <select
+            id="programme"
+            name="programme"
+            class="form-control"
+            required
+          >
+            <option value="" disabled selected>Select programme…</option>
+            <?php foreach ($programmes as $prog): ?>
+              <option value="<?php echo htmlspecialchars($prog); ?>">
+                <?php echo htmlspecialchars($prog); ?>
+              </option>
+            <?php endforeach; ?>
+          </select>
+          <div class="form-error" id="err-programme"></div>
         </div>
 
-        <div class="form-row">
-          <div class="form-group">
-            <label for="reg_password">Password</label>
+        <!-- Password -->
+        <div class="form-group">
+          <label for="password">Password</label>
+          <div class="input-wrap">
+            <span class="input-icon">🔒</span>
             <input
               type="password"
-              id="reg_password"
+              id="password"
               name="password"
               class="form-control"
               placeholder="••••••••"
               required
               minlength="8"
+              autocomplete="new-password"
             />
           </div>
-          <div class="form-group">
-            <label for="confirm_password">Confirm Password</label>
+          <div class="form-hint">Minimum 8 characters.</div>
+          <div class="form-error" id="err-password"></div>
+        </div>
+
+        <!-- Confirm Password -->
+        <div class="form-group">
+          <label for="confirm_password">Confirm Password</label>
+          <div class="input-wrap">
+            <span class="input-icon">🔒</span>
             <input
               type="password"
               id="confirm_password"
@@ -157,12 +194,10 @@ $success   = $success ?? null;
               class="form-control"
               placeholder="••••••••"
               required
+              autocomplete="new-password"
             />
           </div>
-        </div>
-
-        <div class="form-hint" style="margin-top:-10px; margin-bottom:18px;">
-          Password must be at least 8 characters.
+          <div class="form-error" id="err-confirm_password"></div>
         </div>
 
         <button type="submit" class="btn btn-primary btn-full btn-lg">
@@ -172,23 +207,84 @@ $success   = $success ?? null;
       </form>
 
       <div class="auth-switch">
-        Already have an account? <a href="/SU-housing/login.php">Sign in</a>
+        Already have an account?
+        <a href="/SU-housing/login.php">Sign in</a>
       </div>
 
     </div>
   </div>
 
-</div><!-- end .auth-page -->
+</div>
 
 <script>
-// Client-side password match validation
-document.querySelector('form').addEventListener('submit', function(e) {
-  const pw  = document.getElementById('reg_password').value;
+// ── Client-side validation ──
+// NFR-02: inline field-level error messages
+
+const form = document.getElementById('registerForm');
+
+function showError(fieldId, message) {
+  const el = document.getElementById('err-' + fieldId);
+  const input = document.getElementById(fieldId);
+  if (el) el.textContent = message;
+  if (input) input.classList.add('is-error');
+}
+
+function clearError(fieldId) {
+  const el = document.getElementById('err-' + fieldId);
+  const input = document.getElementById(fieldId);
+  if (el) el.textContent = '';
+  if (input) input.classList.remove('is-error');
+}
+
+// Clear errors on input
+['full_name','admission_no','programme','password','confirm_password']
+  .forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('input', () => clearError(id));
+  });
+
+form.addEventListener('submit', function(e) {
+  let valid = true;
+
+  // Full name
+  const name = document.getElementById('full_name').value.trim();
+  if (!name) {
+    showError('full_name', 'Full name is required.');
+    valid = false;
+  }
+
+  // Admission number — must be digits only, 5-8 chars
+  const admNo = document.getElementById('admission_no').value.trim();
+  if (!admNo) {
+    showError('admission_no', 'Admission number is required.');
+    valid = false;
+  } else if (!/^\d{5,8}$/.test(admNo)) {
+    showError('admission_no', 'Must be a valid admission number (e.g. 6 digits).');
+    valid = false;
+  }
+
+  // Programme
+  const prog = document.getElementById('programme').value;
+  if (!prog) {
+    showError('programme', 'Please select your programme.');
+    valid = false;
+  }
+
+  // Password length
+  const pw = document.getElementById('password').value;
+  if (pw.length < 8) {
+    showError('password', 'Password must be at least 8 characters.');
+    valid = false;
+  }
+
+  // Confirm password match
   const cpw = document.getElementById('confirm_password').value;
   if (pw !== cpw) {
-    e.preventDefault();
-    alert('Passwords do not match. Please try again.');
+    showError('confirm_password', 'Passwords do not match.');
+    valid = false;
   }
+
+  if (!valid) e.preventDefault();
 });
 </script>
 
