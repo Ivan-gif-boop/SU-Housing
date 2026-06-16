@@ -77,10 +77,10 @@ include '../includes/sidebar.php';
     <?php endif; ?>
 
     <!--
-      Backend hook:
-      action="/SU-housing/api/profiles/me.php" method="POST"
-      Also add: <?php echo csrfField(); ?> inside the form
-    -->
+  Backend hook:
+  action="/SU-housing/api/profiles/me.php" method="POST"
+  Michelle adds: csrfField() inside the form when integrating
+-->
     <form
       action="#"
       method="POST"
