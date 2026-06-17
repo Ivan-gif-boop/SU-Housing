@@ -38,7 +38,6 @@ $adminNav = [
   ],
   'Management' => [
     ['icon' => '🏠', 'label' => 'Manage Listings', 'href' => BASE_PATH . '/admin/listings.php',   'key' => 'listings'],
-    ['icon' => '💬', 'label' => 'Inquiries',        'href' => BASE_PATH . '/admin/inquiries.php',  'key' => 'inquiries', 'badge' => ''],
     ['icon' => '📋', 'label' => 'Feedback',         'href' => BASE_PATH . '/admin/feedback.php',   'key' => 'feedback',  'badge' => ''],
   ],
   'Account' => [

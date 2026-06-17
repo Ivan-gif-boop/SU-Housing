@@ -36,7 +36,7 @@ $programmes = [
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title><?php echo $pageTitle; ?> — StrathHousing</title>
+  <title><?php echo $pageTitle; ?> — SU-Housing</title>
   <link rel="stylesheet" href="/SU-housing/assets/css/variables.css"/>
   <link rel="stylesheet" href="/SU-housing/assets/css/base.css"/>
   <link rel="stylesheet" href="/SU-housing/assets/css/components.css"/>
@@ -50,7 +50,7 @@ $programmes = [
   <div class="auth-left">
     <div class="auth-logo">
       <div class="auth-logo-mark"><span>S</span></div>
-      <div class="auth-logo-name">StrathHousing</div>
+      <div class="auth-logo-name">SU-Housing</div>
     </div>
 
     <div class="auth-hero">
