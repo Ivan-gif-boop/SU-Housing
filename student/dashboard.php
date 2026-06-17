@@ -217,7 +217,7 @@ include __DIR__ . '/../includes/sidebar.php';
               <?php echo ucfirst($h['roomType']); ?>
             </span>
             
-              href="/SU-Housing/student/detail.php?id=<?php echo $h['hostelId']; ?>"
+              <a href="/SU-Housing/student/detail.php?id=<?php echo $h['hostelId']; ?>"
               class="btn btn-primary btn-sm"
             >
               View Details →
