@@ -813,4 +813,150 @@ td {
   .quick-actions-grid {
     grid-template-columns: 1fr;
   }
+}/* ════════════════════════════════
+   BROWSE LAYOUT
+════════════════════════════════ */
+.browse-layout {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 24px;
+  align-items: flex-start;
+}
+
+/* ── Filter panel ── */
+.filter-panel {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--gray-100);
+  box-shadow: var(--shadow);
+  padding: 20px;
+  position: sticky;
+  top: 24px;
+}
+
+.filter-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.filter-panel-title {
+  font-family: var(--font-display);
+  font-size: 17px;
+  color: var(--navy);
+}
+
+.filter-group {
+  margin-bottom: 22px;
+}
+
+.filter-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--gray-600);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+/* ── Checkbox list ── */
+.checkbox-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.checkbox-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--gray-800);
+  user-select: none;
+}
+
+.checkbox-option input[type="checkbox"] {
+  display: none;
+}
+
+.checkbox-box {
+  width: 17px;
+  height: 17px;
+  border: 2px solid var(--gray-300);
+  border-radius: 4px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition);
+  background: var(--white);
+}
+
+.checkbox-option input[type="checkbox"]:checked ~ .checkbox-box {
+  background: var(--amber);
+  border-color: var(--amber);
+}
+
+.checkbox-option input[type="checkbox"]:checked ~ .checkbox-box::after {
+  content: '✓';
+  font-size: 11px;
+  color: var(--navy);
+  font-weight: 700;
+}
+
+.checkbox-option:hover .checkbox-box {
+  border-color: var(--amber);
+}
+
+/* ── Results bar ── */
+.results-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.results-count {
+  font-size: 14px;
+  color: var(--gray-600);
+}
+
+.results-count strong {
+  color: var(--navy);
+}
+
+/* ── Match badge ── */
+.match-badge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  background: var(--green);
+  color: var(--white);
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  z-index: 2;
+}
+
+/* ── Rooms pill ── */
+.hostel-rooms-pill {
+  color: var(--gray-400);
+  font-size: 12px;
+}
+
+/* ── Browse responsive ── */
+@media (max-width: 900px) {
+  .browse-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .filter-panel {
+    position: static;
+  }
 }

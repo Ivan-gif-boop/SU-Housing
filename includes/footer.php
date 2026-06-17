@@ -1,14 +1,24 @@
 <?php
 // includes/footer.php
-// Always include this at the bottom of every app page.
 ?>
-
-    <!-- Toast notification -->
+    <!-- Toast -->
     <div id="toast"></div>
 
   </div><!-- end #main-content -->
 </div><!-- end #app -->
 
-<script src="/SU-housing/assets/js/main.js"></script>
+<script src="/SU-Housing/assets/js/main.js"></script>
+
+<?php
+// Page-specific scripts — set $extraScripts array before including footer
+if (!empty($extraScripts)):
+  foreach ($extraScripts as $script):
+?>
+  <script src="<?php echo $script; ?>"></script>
+<?php
+  endforeach;
+endif;
+?>
+
 </body>
 </html>
