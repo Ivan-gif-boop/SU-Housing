@@ -41,8 +41,8 @@ $p = [
 // Is this being shown right after registration or as an edit?
 $isPostRegistration = isset($_GET['new']) && $_GET['new'] === '1';
 
-include '../includes/header.php';
-include '../includes/sidebar.php';
+include __DIR__ . '/../includes/header.php';
+include __DIR__ . '/../includes/sidebar.php';
 ?>
 
   <!-- ── Page header ── -->
@@ -333,7 +333,7 @@ include '../includes/sidebar.php';
 
   </div><!-- end page-body -->
 
-<?php include '../includes/footer.php'; ?>
+<?php include __DIR__ . '/../includes/footer.php'; ?>
 <script>
 document.getElementById('preferenceForm')
   .addEventListener('submit', function(e) {
