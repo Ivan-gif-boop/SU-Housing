@@ -55,10 +55,10 @@ $hasProfile      = false;
 $featured = [
   [
     'hostelId'      => 1,
-    'hostelName'    => 'Sunrise Hostel',
+    'hostelName'    => 'Keri Apartments',
     'neighbourhood' => 'Madaraka',
-    'priceMin'      => 8000,
-    'priceMax'      => 12000,
+    'priceMin'      => 15500,
+    'priceMax'      => 20000,
     'roomType'      => 'single',
     'amenities'     => ['WiFi', 'Water', 'Security'],
   ],
