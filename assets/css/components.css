@@ -1084,3 +1084,35 @@ td {
   gap: 10px;
   flex-wrap: wrap;
 }
+/* ════════════════════════════════
+   TAB COUNT BADGE
+════════════════════════════════ */
+.tab-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 700;
+  background: var(--gray-200);
+  color: var(--gray-600);
+  margin-left: 6px;
+}
+
+.tab-count.pending {
+  background: var(--amber);
+  color: var(--navy);
+}
+
+.tab-btn.active .tab-count {
+  background: var(--navy);
+  color: var(--white);
+}
+
+.tab-btn.active .tab-count.pending {
+  background: var(--amber);
+  color: var(--navy);
+}
