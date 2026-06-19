@@ -39,7 +39,7 @@ $allFeedback = [
   [
     'feedbackId'      => 1,
     'hostelId'        => 1,
-    'hostelName'      => 'Sunrise Hostel',
+    'hostelName'      => 'Keri Apartment',
     'fullName'        => 'Amina Ochieng',
     'admissionNumber' => '176821',
     'submissionText'  => 'Excellent hostel overall. WiFi is
@@ -52,7 +52,7 @@ $allFeedback = [
   [
     'feedbackId'      => 2,
     'hostelId'        => 1,
-    'hostelName'      => 'Sunrise Hostel',
+    'hostelName'      => 'Keri Apartment',
     'fullName'        => 'Brian Kamau',
     'admissionNumber' => '176833',
     'submissionText'  => 'Main gate lock has been broken for
@@ -65,7 +65,7 @@ $allFeedback = [
   [
     'feedbackId'      => 3,
     'hostelId'        => 2,
-    'hostelName'      => 'Campus View Apartments',
+    'hostelName'      => 'Nyayo View Suites',
     'fullName'        => 'Cynthia Otieno',
     'admissionNumber' => '176801',
     'submissionText'  => 'Very clean and well managed. The gym
@@ -104,7 +104,7 @@ $allFeedback = [
   [
     'feedbackId'      => 6,
     'hostelId'        => 2,
-    'hostelName'      => 'Campus View Apartments',
+    'hostelName'      => 'Nyayo View Suites',
     'fullName'        => 'Felix Ouma',
     'admissionNumber' => '176855',
     'submissionText'  => 'The listing says backup power but the
