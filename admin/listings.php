@@ -37,7 +37,7 @@ $userName   = 'Dean of Students';
 $listings = [
   [
     'hostelId'       => 1,
-    'hostelName'     => 'Sunrise Hostel',
+    'hostelName'     => 'Keri Apartments',
     'neighbourhood'  => 'Madaraka',
     'physicalAddress'=> 'Ole Shapara Avenue, Madaraka, Nairobi',
     'description'    => 'A well-maintained hostel 5 minutes from
