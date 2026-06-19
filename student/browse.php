@@ -37,10 +37,10 @@ $hasProfile = true; // toggle to false to test no-profile state
 $listings = [
   [
     'hostelId'      => 1,
-    'hostelName'    => 'Sunrise Hostel',
+    'hostelName'    => 'Keri Apartments',
     'neighbourhood' => 'Madaraka',
-    'priceMin'      => 8000,
-    'priceMax'      => 12000,
+    'priceMin'      => 15500,
+    'priceMax'      => 20000,
     'roomType'      => 'single',
     'roomsAvailable'=> 5,
     'amenities'     => ['WiFi', 'Water', 'Security', 'CCTV'],
@@ -49,7 +49,7 @@ $listings = [
   ],
   [
     'hostelId'      => 2,
-    'hostelName'    => 'Campus View Apartments',
+    'hostelName'    => 'Nyaya Lodge',
     'neighbourhood' => 'Nairobi West',
     'priceMin'      => 10000,
     'priceMax'      => 15000,
@@ -85,7 +85,7 @@ $listings = [
   ],
   [
     'hostelId'      => 5,
-    'hostelName'    => 'Madaraka Lodge',
+    'hostelName'    => 'Madaraka Heights',
     'neighbourhood' => 'Madaraka',
     'priceMin'      => 5000,
     'priceMax'      => 7500,
@@ -249,7 +249,7 @@ include __DIR__ . '/../includes/sidebar.php';
             <?php
             $amenityOptions = [
               'WiFi', 'Water', 'Security',
-              'Parking', 'Laundry', 'CCTV',
+              'Parking', 'Laundry',
               'Backup Power', 'Gym',
             ];
             foreach ($amenityOptions as $a):

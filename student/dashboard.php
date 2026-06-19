@@ -64,7 +64,7 @@ $featured = [
   ],
   [
     'hostelId'      => 2,
-    'hostelName'    => 'Campus View Apartments',
+    'hostelName'    => 'Nyayo View Suites',
     'neighbourhood' => 'Nairobi West',
     'priceMin'      => 10000,
     'priceMax'      => 15000,
