@@ -38,7 +38,7 @@
 // ─────────────────────────────────────────
 
 // Frontend defaults
-$pageTitle  = 'Hostel Detail';
+$pageTitle  = 'Keri Apartments';
 $activePage = 'browse';
 $userRole   = 'student';
 $userName   = 'Ivan Wachira';
@@ -46,7 +46,7 @@ $userName   = 'Ivan Wachira';
 // Mock hostel data
 $hostel = [
   'hostelId'        => 1,
-  'hostelName'      => 'Sunrise Hostel',
+  'hostelName'      => 'Keri Apartments',
   'physicalAddress' => 'Ole Shapara Avenue, Madaraka, Nairobi',
   'neighbourhood'   => 'Madaraka',
   'description'     => 'A well-maintained hostel just 5 minutes from
@@ -55,8 +55,8 @@ $hostel = [
     is fully fenced with CCTV coverage and a resident caretaker
     available Monday to Saturday. Rooms are self-contained with
     adequate natural lighting and ventilation.',
-  'priceMin'        => 8000,
-  'priceMax'        => 12000,
+  'priceMin'        => 15500,
+  'priceMax'        => 20000,
   'roomType'        => 'single',
   'roomsAvailable'  => 5,
   'amenities'       => [
