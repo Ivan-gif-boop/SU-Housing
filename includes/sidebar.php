@@ -34,14 +34,22 @@ $studentNav = [
 
 $adminNav = [
   'Overview' => [
-    ['icon' => '⊞',  'label' => 'Dashboard',      'href' => BASE_PATH . '/admin/dashboard.php',  'key' => 'dashboard'],
+    ['icon' => '⊞',  'label' => 'Dashboard',
+     'href' => '/SU-Housing/admin/dashboard.php',
+     'key'  => 'dashboard'],
   ],
   'Management' => [
-    ['icon' => '🏠', 'label' => 'Manage Listings', 'href' => BASE_PATH . '/admin/listings.php',   'key' => 'listings'],
-    ['icon' => '📋', 'label' => 'Feedback',         'href' => BASE_PATH . '/admin/feedback.php',   'key' => 'feedback',  'badge' => ''],
+    ['icon' => '🏠', 'label' => 'Manage Listings',
+     'href' => '/SU-Housing/admin/listings.php',
+     'key'  => 'listings'],
+    ['icon' => '📋', 'label' => 'Feedback',
+     'href' => '/SU-Housing/admin/feedback.php',
+     'key'  => 'feedback'],
   ],
   'Account' => [
-    ['icon' => '👤', 'label' => 'Profile',          'href' => BASE_PATH . '/admin/profile.php',    'key' => 'profile'],
+    ['icon' => '👤', 'label' => 'Profile',
+     'href' => '/SU-Housing/admin/profile.php',
+     'key'  => 'profile'],
   ],
 ];
 

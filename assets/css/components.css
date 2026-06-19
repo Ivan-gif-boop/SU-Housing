@@ -1030,3 +1030,57 @@ td {
     grid-template-columns: 1fr;
   }
 }
+/* ════════════════════════════════
+   FEEDBACK CLASSIFY CARDS (Admin)
+════════════════════════════════ */
+.feedback-classify-card {
+  background: var(--white);
+  border: 1px solid var(--gray-100);
+  border-radius: var(--radius-lg);
+  padding: 20px 24px;
+  margin-bottom: 14px;
+  box-shadow: var(--shadow);
+  transition: box-shadow var(--transition);
+}
+
+.feedback-classify-card:hover {
+  box-shadow: var(--shadow-lg);
+}
+
+.fbc-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.fbc-hostel {
+  font-family: var(--font-display);
+  font-size: 17px;
+  color: var(--navy);
+  margin-bottom: 3px;
+}
+
+.fbc-meta {
+  font-size: 12px;
+  color: var(--gray-400);
+}
+
+.fbc-text {
+  font-size: 14px;
+  color: var(--gray-600);
+  line-height: 1.7;
+  margin-bottom: 16px;
+  padding: 12px 16px;
+  background: var(--off-white);
+  border-radius: var(--radius);
+  border-left: 3px solid var(--gray-200);
+}
+
+.fbc-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
