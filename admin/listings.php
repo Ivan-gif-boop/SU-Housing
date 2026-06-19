@@ -53,7 +53,7 @@ $listings = [
   ],
   [
     'hostelId'       => 2,
-    'hostelName'     => 'Campus View Apartments',
+    'hostelName'     => 'Nyayo View Suites',
     'neighbourhood'  => 'Nairobi West',
     'physicalAddress'=> 'Nairobi West Road, Nairobi West, Nairobi',
     'description'    => 'Modern studio and double apartments with
