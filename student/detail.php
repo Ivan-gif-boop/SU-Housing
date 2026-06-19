@@ -179,100 +179,54 @@ include __DIR__ . '/../includes/sidebar.php';
           </div>
           <div class="card-body" style="padding:0;">
 
-            <!-- Google Map embed -->
-            <!-- 
-              Backend hook: Michelle replaces this placeholder with a
-              real Google Maps embed using $hostel['latitude'] and
-              $hostel['longitude'].
+        <!-- Leaflet Map (FR-07) -->
+        <!-- Leaflet renders here — JS below initialises it -->
+        <div id="hostelMap"
+            style="height:320px; width:100%; z-index:1;"
+            data-lat="<?php echo $hostel['latitude']; ?>"
+            data-lng="<?php echo $hostel['longitude']; ?>"
+            data-name="<?php echo htmlspecialchars($hostel['hostelName']); ?>">
+        </div>
+            <!-- Travel times — populated by OSRM API call in detail.js -->
+        <div class="travel-times" id="travelTimes">
 
-              The iframe src should be:
-              https://www.google.com/maps/embed/v1/place
-                ?key=GOOGLE_API_KEY
-                &q={latitude},{longitude}
-                &zoom=16
-            -->
-            <div class="map-placeholder" id="mapContainer">
-              <div class="map-placeholder-inner">
-                <span style="font-size:36px;">🗺️</span>
-                <p style="font-size:14px; color:var(--gray-600);
-                           margin-top:8px;">
-                  Map loads here
-                  <br/>
-                  <span style="font-size:12px; color:var(--gray-400);">
-                    <?php echo htmlspecialchars(
-                      $hostel['physicalAddress']
-                    ); ?>
-                  </span>
-                </p>
-              </div>
-              <!--
-                Replace the div above with this when API key is ready:
-                <iframe
-                  width="100%" height="100%"
-                  style="border:0;"
-                  loading="lazy"
-                  allowfullscreen
-                  referrerpolicy="no-referrer-when-downgrade"
-                  src="https://www.google.com/maps/embed/v1/place
-                       ?key=<?php echo GOOGLE_API_KEY; ?>
-                       &q=<?php echo $hostel['latitude']; ?>,
-                          <?php echo $hostel['longitude']; ?>
-                       &zoom=16">
-                </iframe>
-              -->
-            </div>
+        <div class="travel-item">
+          <div class="travel-icon">🚶</div>
+          <div class="travel-info">
+            <div class="travel-mode">Walking</div>
+            <div class="travel-duration" id="walkDuration">
+          Calculating…
+        </div>
+        <div class="travel-via" id="walkDistance">
+          from Strathmore University
+        </div>
+      </div>
+    </div>
 
-            <!-- Travel times -->
-            <div class="travel-times">
-              <div class="travel-item">
-                <div class="travel-icon">🚶</div>
-                <div class="travel-info">
-                  <div class="travel-mode">Walking</div>
-                  <div class="travel-duration">
-                    <?php echo htmlspecialchars(
-                      $travelData['walking']['duration']
-                    ); ?>
-                  </div>
-                  <div class="travel-via">
-                    <?php echo htmlspecialchars(
-                      $travelData['walking']['distance']
-                    ); ?>
-                    via
-                    <?php echo htmlspecialchars(
-                      $travelData['walking']['via']
-                    ); ?>
-                  </div>
-                </div>
-              </div>
-              <div class="travel-divider"></div>
-              <div class="travel-item">
-                <div class="travel-icon">🚌</div>
-                <div class="travel-info">
-                  <div class="travel-mode">Transit</div>
-                  <div class="travel-duration">
-                    <?php echo htmlspecialchars(
-                      $travelData['transit']['duration']
-                    ); ?>
-                  </div>
-                  <div class="travel-via">
-                    <?php echo htmlspecialchars(
-                      $travelData['transit']['distance']
-                    ); ?>
-                    via
-                    <?php echo htmlspecialchars(
-                      $travelData['transit']['via']
-                    ); ?>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <p style="font-size:11px; color:var(--gray-400);
-                       padding:0 20px 14px; text-align:center;">
-              Travel times computed via Google Distance Matrix API
-              from Strathmore University main gate.
-            </p>
+    <div class="travel-divider"></div>
 
-          </div>
+    <div class="travel-item">
+      <div class="travel-icon">🚌</div>
+      <div class="travel-info">
+        <div class="travel-mode">Driving</div>
+        <div class="travel-duration" id="driveDuration">
+          Calculating…
+        </div>
+        <div class="travel-via" id="driveDistance">
+          from Strathmore University
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <p style="font-size:11px; color:var(--gray-400);
+             padding:0 20px 14px; text-align:center;">
+    Travel times from Strathmore University main gate
+    via OSRM. Map via Leaflet.js &amp; OpenStreetMap.
+  </p>
+
+</div>
         </div>
 
         <!-- ── Landlord contact ── -->
@@ -426,5 +380,10 @@ include __DIR__ . '/../includes/sidebar.php';
     </div><!-- end detail-layout -->
 
   </div><!-- end page-body -->
-
+<?php
+$extraScripts = [
+  'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js',
+  '/SU-Housing/assets/js/detail.js',
+];
+?>
 <?php include __DIR__ . '/../includes/footer.php'; ?>

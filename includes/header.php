@@ -22,4 +22,8 @@ $pageTitle = $pageTitle ?? 'SU-Housing';
   <link rel="stylesheet" href="<?php echo BASE_PATH; ?>/assets/css/components.css"/>
   <link rel="stylesheet" href="<?php echo BASE_PATH; ?>/assets/css/layout.css"/>
 </head>
+<?php if (!empty($usesMap)): ?>
+  <link rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<?php endif; ?>
 <body>
