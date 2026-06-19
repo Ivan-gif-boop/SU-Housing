@@ -101,12 +101,12 @@ $pendingFeedback = [
 // Mock sentiment analytics data (FR-12)
 $sentimentData = [
   [
-    'hostelName' => 'Sunrise Hostel',
+    'hostelName' => 'Keri Apartments',
     'positive'   => 8,
     'negative'   => 2,
   ],
   [
-    'hostelName' => 'Campus View Apartments',
+    'hostelName' => 'Nairobi West',
     'positive'   => 5,
     'negative'   => 3,
   ],
