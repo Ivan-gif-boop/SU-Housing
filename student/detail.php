@@ -298,11 +298,10 @@ include __DIR__ . '/../includes/sidebar.php';
 
             <div class="detail-price">
               KES <?php echo number_format($hostel['priceMin']); ?>
-              <span style="font-size:18px; color:var(--gray-400);">
                 – <?php echo number_format($hostel['priceMax']); ?>
-              </span>
+              
             </div>
-            <div style="font-size:13px; color:var(--gray-600);
+            <div style="font-size:18px; color:var(--gray-600);
                          margin-bottom:20px;">
               per month
             </div>
