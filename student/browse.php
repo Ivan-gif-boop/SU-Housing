@@ -1,7 +1,7 @@
 <?php
 // student/browse.php
 // FR-05: keyword search
-// FR-06: filter by neighbourhood, price range, room type, amenities
+// FR-06: filter by location, price range, room type, amenities
 // FR-09: preference match banner if student has a profile
 
 // ─────────────────────────────────────────
@@ -38,7 +38,7 @@ $listings = [
   [
     'hostelId'      => 1,
     'hostelName'    => 'Keri Apartments',
-    'neighbourhood' => 'Madaraka',
+    'location' => 'Madaraka',
     'priceMin'      => 15500,
     'priceMax'      => 20000,
     'roomType'      => 'single',
@@ -50,7 +50,7 @@ $listings = [
   [
     'hostelId'      => 2,
     'hostelName'    => 'Nyaya Lodge',
-    'neighbourhood' => 'Nairobi West',
+    'location' => 'Nairobi West',
     'priceMin'      => 10000,
     'priceMax'      => 15000,
     'roomType'      => 'studio',
@@ -62,7 +62,7 @@ $listings = [
   [
     'hostelId'      => 3,
     'hostelName'    => 'Green Park Residences',
-    'neighbourhood' => "Lang'ata",
+    'location' => "Lang'ata",
     'priceMin'      => 6500,
     'priceMax'      => 9000,
     'roomType'      => 'shared',
@@ -74,7 +74,7 @@ $listings = [
   [
     'hostelId'      => 4,
     'hostelName'    => 'Westview Apartments',
-    'neighbourhood' => 'Nairobi West',
+    'location' => 'Nairobi West',
     'priceMin'      => 12000,
     'priceMax'      => 18000,
     'roomType'      => 'ensuite',
@@ -86,7 +86,7 @@ $listings = [
   [
     'hostelId'      => 5,
     'hostelName'    => 'Madaraka Heights',
-    'neighbourhood' => 'Madaraka',
+    'location' => 'Madaraka',
     'priceMin'      => 5000,
     'priceMax'      => 7500,
     'roomType'      => 'single',
@@ -98,7 +98,7 @@ $listings = [
   [
     'hostelId'      => 6,
     'hostelName'    => "Lang'ata Court",
-    'neighbourhood' => "Lang'ata",
+    'location' => "Lang'ata",
     'priceMin'      => 9000,
     'priceMax'      => 13000,
     'roomType'      => 'ensuite',
@@ -189,13 +189,13 @@ include __DIR__ . '/../includes/sidebar.php';
           </div>
         </div>
 
-        <!-- Neighbourhood -->
+        <!-- Location -->
         <div class="filter-group">
-          <label class="filter-label">Neighbourhood</label>
-          <select id="filterNeighbourhood"
+          <label class="filter-label">Location</label>
+          <select id="filterLocation"
                   class="form-control"
                   onchange="applyFilters()">
-            <option value="">All Neighbourhoods</option>
+            <option value="">All Locations</option>
             <option value="Madaraka">Madaraka</option>
             <option value="Nairobi West">Nairobi West</option>
             <option value="Lang'ata">Lang'ata</option>
@@ -313,7 +313,7 @@ include __DIR__ . '/../includes/sidebar.php';
             ?>
             <div class="hostel-card animate-fade-up"
                  data-name="<?php echo strtolower(htmlspecialchars($h['hostelName'])); ?>"
-                 data-neighbourhood="<?php echo htmlspecialchars($h['neighbourhood']); ?>"
+                 data-location="<?php echo htmlspecialchars($h['location']); ?>"
                  data-price-min="<?php echo $h['priceMin']; ?>"
                  data-price-max="<?php echo $h['priceMax']; ?>"
                  data-room-type="<?php echo $h['roomType']; ?>"
@@ -346,7 +346,7 @@ include __DIR__ . '/../includes/sidebar.php';
                   <?php echo htmlspecialchars($h['hostelName']); ?>
                 </h3>
                 <div class="hostel-location">
-                  📍 <?php echo htmlspecialchars($h['neighbourhood']); ?>
+                  📍 <?php echo htmlspecialchars($h['location']); ?>
                   <span class="hostel-rooms-pill">
                     · <?php echo $h['roomsAvailable']; ?> rooms
                   </span>
