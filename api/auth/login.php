@@ -1,7 +1,7 @@
 <?php
-require_once __DIR__ . '/../includes/headers.php';
-require_once __DIR__ . '/../includes/csrf.php';
-require_once __DIR__ . '/../config/db.php';
+require_once __DIR__ . '/../../includes/headers.php';
+require_once __DIR__ . '/../../includes/csrf.php';
+require_once __DIR__ . '/../../config/db.php';
 
 session_start();
 

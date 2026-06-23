@@ -8,10 +8,10 @@ $error     = $error ?? null;
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title><?php echo $pageTitle; ?> — SU-Housing</title>
-  <link rel="stylesheet" href="/SU-housing/assets/css/variables.css"/>
-  <link rel="stylesheet" href="/SU-housing/assets/css/base.css"/>
-  <link rel="stylesheet" href="/SU-housing/assets/css/components.css"/>
-  <link rel="stylesheet" href="/SU-housing/assets/css/auth.css"/>
+ <link rel="stylesheet" href="/SU-Housing/assets/css/variables.css"/>
+<link rel="stylesheet" href="/SU-Housing/assets/css/base.css"/>
+<link rel="stylesheet" href="/SU-Housing/assets/css/components.css"/>
+<link rel="stylesheet" href="/SU-Housing/assets/css/auth.css"/>
 </head>
 <body>
 
@@ -69,10 +69,6 @@ $error     = $error ?? null;
         </div>
       <?php endif; ?>
 
-      <!--
-        Backend hook:
-        action="/SU-housing/api/auth/login.php" method="POST"
-      -->
       <form action="#" method="POST" id="loginForm" novalidate>
 
         <div class="form-group">
@@ -125,7 +121,7 @@ $error     = $error ?? null;
 
       <div class="auth-switch">
         New student?
-        <a href="/SU-housing/register.php">Create an account</a>
+      <a href="/SU-Housing/register.php">Create an account</a>
       </div>
 
     </div>
@@ -155,7 +151,8 @@ function clearError(fieldId) {
   if (el) el.addEventListener('input', () => clearError(id));
 });
 
-loginForm.addEventListener('submit', function(e) {
+loginForm.addEventListener('submit', async function(e) {
+  e.preventDefault();
   let valid = true;
 
   const adm = document.getElementById('admission_no').value.trim();
@@ -170,7 +167,35 @@ loginForm.addEventListener('submit', function(e) {
     valid = false;
   }
 
-  if (!valid) e.preventDefault();
+  if (!valid) return;
+
+  try {
+    const response = await fetch('/SU-Housing/api/auth/login.php', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        admissionNumber: adm,
+        password: pw
+      })
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      if (data.role === 'admin') {
+        window.location.href = '/SU-Housing/admin/dashboard.php';
+      } else {
+        window.location.href = '/SU-Housing/student/dashboard.php';
+      }
+    } else {
+      showError('admission_no', data.error || 'Login failed. Please try again.');
+    }
+
+  } catch (err) {
+    showError('admission_no', 'Network error. Please try again.');
+    console.error('Login error:', err);
+  }
 });
 </script>
 
