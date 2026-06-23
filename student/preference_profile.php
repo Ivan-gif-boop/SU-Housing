@@ -31,11 +31,11 @@ $p = [
   'studyHabits'    => $profile['studyHabits']    ?? '',
   'sleepSchedule'  => $profile['sleepSchedule']  ?? '',
   'noiseTolerance' => $profile['noiseTolerance'] ?? '',
-  'genderPref'     => $profile['genderPref']     ?? '',
-  'roomType'       => $profile['roomType']       ?? '',
+  'genderPreference'     => $profile['genderPref']     ?? '',
+  'roomTypePreference'       => $profile['roomType']       ?? '',
   'budgetMin'      => $profile['budgetMin']      ?? '',
   'budgetMax'      => $profile['budgetMax']      ?? '',
-  'locationPref'   => $profile['locationPref']   ?? '',
+  'preferredLocation'   => $profile['locationPref']   ?? '',
 ];
 
 // Is this being shown right after registration or as an edit?
@@ -141,8 +141,8 @@ include __DIR__ . '/../includes/sidebar.php';
               </label>
               <label class="radio-option">
                 <input type="radio" name="sleepSchedule"
-                       value="10pm_to_12am"
-                       <?php echo $p['sleepSchedule'] === '10pm_to_12am' ? 'checked' : ''; ?>/>
+                       value="10pm_12am"
+                       <?php echo $p['sleepSchedule'] === '10pm_12am' ? 'checked' : ''; ?>/>
                 <span class="radio-box"><span class="radio-dot"></span></span>
                 10 pm – 12 am
               </label>
@@ -187,21 +187,21 @@ include __DIR__ . '/../includes/sidebar.php';
           <!-- Gender preference -->
           <div class="pref-field">
             <div class="pref-label">Gender preference</div>
-            <select name="genderPref" class="form-control pref-select">
+            <select name="genderPreference" class="form-control pref-select">
               <option value=""
-                <?php echo $p['genderPref'] === '' ? 'selected' : ''; ?>>
+                <?php echo $p['genderPreference'] === '' ? 'selected' : ''; ?>>
                 No preference
               </option>
               <option value="male_only"
-                <?php echo $p['genderPref'] === 'male_only' ? 'selected' : ''; ?>>
+                <?php echo $p['genderPreference'] === 'male_only' ? 'selected' : ''; ?>>
                 Male only
               </option>
               <option value="female_only"
-                <?php echo $p['genderPref'] === 'female_only' ? 'selected' : ''; ?>>
+                <?php echo $p['genderPreference'] === 'female_only' ? 'selected' : ''; ?>>
                 Female only
               </option>
               <option value="mixed"
-                <?php echo $p['genderPref'] === 'mixed' ? 'selected' : ''; ?>>
+                <?php echo $p['genderPreference'] === 'mixed' ? 'selected' : ''; ?>>
                 Mixed
               </option>
             </select>
@@ -219,25 +219,25 @@ include __DIR__ . '/../includes/sidebar.php';
 
           <div class="pref-field">
             <div class="pref-label">Room type</div>
-            <select name="roomType" class="form-control pref-select">
+            <select name="roomTypePreference" class="form-control pref-select">
               <option value=""
-                <?php echo $p['roomType'] === '' ? 'selected' : ''; ?>>
+                <?php echo $p['roomTypePreference'] === '' ? 'selected' : ''; ?>>
                 No preference
               </option>
               <option value="single"
-                <?php echo $p['roomType'] === 'single' ? 'selected' : ''; ?>>
+                <?php echo $p['roomTypePreference'] === 'single' ? 'selected' : ''; ?>>
                 Single
               </option>
               <option value="shared"
-                <?php echo $p['roomType'] === 'shared' ? 'selected' : ''; ?>>
+                <?php echo $p['roomTypePreference'] === 'shared' ? 'selected' : ''; ?>>
                 Shared
               </option>
               <option value="ensuite"
-                <?php echo $p['roomType'] === 'ensuite' ? 'selected' : ''; ?>>
+                <?php echo $p['roomTypePreference'] === 'ensuite' ? 'selected' : ''; ?>>
                 Ensuite
               </option>
               <option value="studio"
-                <?php echo $p['roomType'] === 'studio' ? 'selected' : ''; ?>>
+                <?php echo $p['roomTypePreference'] === 'studio' ? 'selected' : ''; ?>>
                 Studio
               </option>
             </select>
@@ -293,21 +293,21 @@ include __DIR__ . '/../includes/sidebar.php';
 
           <div class="pref-field">
             <div class="pref-label">Preferred Location</div>
-            <select name="locationPref" class="form-control pref-select">
+            <select name="preferredLocation" class="form-control pref-select">
               <option value=""
-                <?php echo $p['locationPref'] === '' ? 'selected' : ''; ?>>
+                <?php echo $p['preferredLocation'] === '' ? 'selected' : ''; ?>>
                 No preference
               </option>
               <option value="Madaraka"
-                <?php echo $p['locationPref'] === 'Madaraka' ? 'selected' : ''; ?>>
+                <?php echo $p['preferredLocation'] === 'Madaraka' ? 'selected' : ''; ?>>
                 Madaraka
               </option>
               <option value="Nairobi West"
-                <?php echo $p['locationPref'] === 'Nairobi West' ? 'selected' : ''; ?>>
+                <?php echo $p['preferredLocation'] === 'Nairobi West' ? 'selected' : ''; ?>>
                 Nairobi West
               </option>
               <option value="Lang'ata"
-                <?php echo $p['locationPref'] === "Lang'ata" ? 'selected' : ''; ?>>
+                <?php echo $p['preferredLocation'] === "Lang'ata" ? 'selected' : ''; ?>>
                 Lang'ata
               </option>
             </select>

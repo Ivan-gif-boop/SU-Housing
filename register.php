@@ -112,7 +112,7 @@ $programmes = [
         - On success: INSERT into users, redirect to preference_profile.php
         - On failure: set $error and re-render page
       -->
-      <form action="#" method="POST" id="registerForm" novalidate>
+      <form action="/SU-Housing/api/auth/register.php" method="POST">
 
         <!-- Full Name -->
         <div class="form-group">

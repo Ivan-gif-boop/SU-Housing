@@ -69,7 +69,7 @@ $error     = $error ?? null;
         </div>
       <?php endif; ?>
 
-      <form action="#" method="POST" id="loginForm" novalidate>
+      <form action="/SU-Housing/api/auth/login.php" method="POST">
 
         <div class="form-group">
           <label for="admission_no">Admission Number</label>
