@@ -3,9 +3,6 @@ if (file_exists($_SERVER['DOCUMENT_ROOT'] . '/SU-Housing/includes/config.php')) 
     require_once $_SERVER['DOCUMENT_ROOT'] . '/SU-Housing/includes/config.php';
 }
 
-if (!defined('BASE_PATH')) {
-    define('BASE_PATH', '/SU-Housing');
-}
 
 $pageTitle = $pageTitle ?? 'SU-Housing';
 ?>
