@@ -7,7 +7,7 @@ define('BASE_URL',  'http://localhost/SU-housing');
 
 // ── Database (Michelle fills these in) ──
 define('DB_HOST', 'localhost');
-define('DB_NAME', 'strathhousing');
+define('DB_NAME', 'su-housing');
 define('DB_USER', 'root');
 define('DB_PASS', '');
 
