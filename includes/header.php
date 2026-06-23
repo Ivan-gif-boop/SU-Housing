@@ -1,8 +1,18 @@
 <?php
+// includes/header.php
+
 if (file_exists($_SERVER['DOCUMENT_ROOT'] . '/SU-Housing/includes/config.php')) {
-    require_once $_SERVER['DOCUMENT_ROOT'] . '/SU-Housing/includes/config.php';
+  require_once $_SERVER['DOCUMENT_ROOT'] . '/SU-Housing/includes/config.php';
 }
 
+// Safety fallback in case config.php is missing
+if (!defined('BASE_PATH')) {
+  define('BASE_PATH', '/SU-Housing');
+}
+
+if (!defined('BASE_URL')) {
+  define('BASE_URL', 'http://localhost/SU-Housing');
+}
 
 $pageTitle = $pageTitle ?? 'SU-Housing';
 ?>
@@ -17,7 +27,8 @@ $pageTitle = $pageTitle ?? 'SU-Housing';
   <link rel="stylesheet" href="<?php echo BASE_PATH; ?>/assets/css/components.css"/>
   <link rel="stylesheet" href="<?php echo BASE_PATH; ?>/assets/css/layout.css"/>
   <?php if (!empty($usesMap)): ?>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <link rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
   <?php endif; ?>
 </head>
-<body></body>
+<body>

@@ -1,26 +1,20 @@
 <?php
-
-
-// ── Base path 
-define('BASE_PATH', '/SU-housing');
-define('BASE_URL',  'http://localhost/SU-housing');
-
-// ── Database (Michelle fills these in) ──
-define('DB_HOST', 'localhost');
-define('DB_NAME', 'suhousing');
-define('DB_USER', 'root');
-define('DB_PASS', '');
 // includes/config.php
 
-// ── Base path (Ivan uses this for CSS/JS links) ──
-define('BASE_PATH', '/SU-Housing');
-define('BASE_URL',  'http://localhost/SU-Housing');
+// ── Base path ──
+if (!defined('BASE_PATH')) {
+  define('BASE_PATH', '/SU-Housing');
+}
 
-// ── Database constants (using defined() to avoid clashes with config/db.php) ──
+if (!defined('BASE_URL')) {
+  define('BASE_URL', 'http://localhost/SU-Housing');
+}
+
+// ── Database ──
 if (!defined('DB_HOST')) define('DB_HOST', 'localhost');
 if (!defined('DB_NAME')) define('DB_NAME', 'suhousing');
 if (!defined('DB_USER')) define('DB_USER', 'root');
 if (!defined('DB_PASS')) define('DB_PASS', '');
 
-// ── Google APIs ──
+// ── Google APIs (not used — replaced by Leaflet/OSRM) ──
 if (!defined('GOOGLE_API_KEY')) define('GOOGLE_API_KEY', '');
