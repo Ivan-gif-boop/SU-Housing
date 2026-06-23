@@ -13,4 +13,3 @@ if (!defined('DB_PASS')) define('DB_PASS', '');
 
 // ── Google APIs ──
 if (!defined('GOOGLE_API_KEY')) define('GOOGLE_API_KEY', '');
-

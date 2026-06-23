@@ -292,7 +292,7 @@ include __DIR__ . '/../includes/sidebar.php';
         <div class="card-body">
 
           <div class="pref-field">
-            <div class="pref-label">Preferred neighbourhood</div>
+            <div class="pref-label">Preferred Location</div>
             <select name="locationPref" class="form-control pref-select">
               <option value=""
                 <?php echo $p['locationPref'] === '' ? 'selected' : ''; ?>>
