@@ -1,7 +1,7 @@
 <?php
-require_once __DIR__ . '/../includes/headers.php';
-require_once __DIR__ . '/../includes/csrf.php';
-require_once __DIR__ . '/../config/db.php';
+require_once __DIR__ . '/../../includes/headers.php';
+require_once __DIR__ . '/../../includes/csrf.php';
+require_once __DIR__ . '/../../config/db.php';
 
 session_start();
 
@@ -25,9 +25,9 @@ if (!$fullName || !$admissionNumber || !$password || !$confirmPassword) {
     exit;
 }
 
-if (!preg_match('/^\d{6}$/', $admissionNumber)) {
+if (!preg_match('/^\d{5,8}$/', $admissionNumber)) {
     http_response_code(400);
-    echo json_encode(['error' => 'Admission number must be exactly 6 digits.']);
+    echo json_encode(['error' => 'Admission number must be 5 to 8 digits.']);
     exit;
 }
 

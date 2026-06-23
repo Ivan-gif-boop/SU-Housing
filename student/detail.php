@@ -1,92 +1,47 @@
 <?php
-// student/detail.php
-// FR-07: embedded Google Map + Distance Matrix travel times
-// FR-10: feedback button links to feedback page for this hostel
+session_start();
 
-// ─────────────────────────────────────────
-// BACKEND HOOK ZONE — Michelle fills this in
-// ─────────────────────────────────────────
-// require_once __DIR__ . '/../includes/auth_check.php';
-// requireAuth('student');
-// $userName = $_SESSION['user_name'];
-//
-// require_once __DIR__ . '/../includes/db.php';
-// $db = getDB();
-//
-// $hostelId = (int)($_GET['id'] ?? 0);
-// if (!$hostelId) {
-//   header('Location: /SU-Housing/student/browse.php');
-//   exit;
-// }
-//
-// $stmt = $db->prepare(
-//   'SELECT * FROM hostel_listings
-//    WHERE hostelId = ? AND isActive = 1'
-// );
-// $stmt->execute([$hostelId]);
-// $hostel = $stmt->fetch();
-//
-// if (!$hostel) {
-//   header('Location: /SU-Housing/student/browse.php');
-//   exit;
-// }
-//
-// $hostel['amenities'] = json_decode($hostel['amenities'], true);
-//
-// // Distance Matrix API called server-side here (FR-07)
-// // Store result in $travelData = ['walking' => ..., 'transit' => ...]
-// ─────────────────────────────────────────
+if (empty($_SESSION['studentId'])) {
+    header('Location: /SU-Housing/login.php');
+    exit;
+}
 
-// Frontend defaults
-$pageTitle  = 'Keri Apartments';
+$hostelId = (int)($_GET['id'] ?? 0);
+if (!$hostelId) {
+    header('Location: /SU-Housing/student/browse.php');
+    exit;
+}
+
+require_once __DIR__ . '/../config/db.php';
+$db = getDB();
+
+$stmt = $db->prepare(
+    'SELECT * FROM hostel_listings WHERE hostelId = ? AND isActive = 1'
+);
+$stmt->execute([$hostelId]);
+$hostel = $stmt->fetch();
+
+if (!$hostel) {
+    header('Location: /SU-Housing/student/browse.php');
+    exit;
+}
+
+$hostel['amenities']     = json_decode($hostel['amenities'], true);
+$hostel['neighbourhood'] = $hostel['physicalAddress'];
+$hostel['landlordName']  = 'Contact via Office';
+$hostel['landlordPhone'] = $hostel['landlordContact'];
+
+$travelData = [];
+
+$pageTitle  = $hostel['hostelName'];
 $activePage = 'browse';
 $userRole   = 'student';
-$userName   = 'Ivan Wachira';
+$userName   = $_SESSION['fullName'] ?? 'Student';
+$usesMap    = true;
 
-// Mock hostel data
-$hostel = [
-  'hostelId'        => 1,
-  'hostelName'      => 'Keri Apartments',
-  'physicalAddress' => 'Ole Shapara Avenue, Madaraka, Nairobi',
-  'neighbourhood'   => 'Madaraka',
-  'description'     => 'A well-maintained hostel just 5 minutes from
-    Strathmore\'s main gate. Sunrise offers clean, secure single and
-    double rooms with 24-hour water supply and fibre WiFi. The compound
-    is fully fenced with CCTV coverage and a resident caretaker
-    available Monday to Saturday. Rooms are self-contained with
-    adequate natural lighting and ventilation.',
-  'priceMin'        => 15500,
-  'priceMax'        => 20000,
-  'roomType'        => 'single',
-  'roomsAvailable'  => 5,
-  'amenities'       => [
-    'WiFi', 'Water', 'Security', 'CCTV', 'Parking'
-  ],
-  'landlordName'    => 'Mr. Joseph Kariuki',
-  'landlordPhone'   => '+254 712 345 678',
-  'latitude'        => -1.3096,
-  'longitude'       => 36.8122,
-  'isActive'        => 1,
-];
-
-// Mock travel data — Michelle populates this from Distance Matrix API
-$travelData = [
-  'walking' => [
-    'duration' => '12 mins',
-    'distance' => '950 m',
-    'via'      => 'Ole Shapara Ave',
-  ],
-  'transit' => [
-    'duration' => '8 mins',
-    'distance' => '1.1 km',
-    'via'      => 'Matatu Route 34',
-  ],
-];
-
-// Strathmore University coordinates (origin for Distance Matrix)
 $strahtmoreCoords = [
-  'lat' => -1.3096,
-  'lng' => 36.8120,
+    'lat' => -1.3100,
+    'lng' => 36.8126,
 ];
 
 include __DIR__ . '/../includes/header.php';
@@ -126,13 +81,12 @@ include __DIR__ . '/../includes/sidebar.php';
   </div>
 
   <div class="page-body">
-
     <div class="detail-layout">
 
       <!-- ════ LEFT: Main content ════ -->
       <div class="detail-main">
 
-        <!-- ── Image placeholder ── -->
+        <!-- Image placeholder -->
         <div class="detail-hero-img card mb-16">
           <div class="detail-img-main">
             <span style="font-size:72px;">🏠</span>
@@ -140,20 +94,19 @@ include __DIR__ . '/../includes/sidebar.php';
           </div>
         </div>
 
-        <!-- ── Description ── -->
+        <!-- Description -->
         <div class="card mb-16">
           <div class="card-header">
             <span class="card-title">Overview</span>
           </div>
           <div class="card-body">
-            <p style="font-size:15px; color:var(--gray-600);
-                      line-height:1.8;">
+            <p style="font-size:15px; color:var(--gray-600); line-height:1.8;">
               <?php echo nl2br(htmlspecialchars($hostel['description'])); ?>
             </p>
           </div>
         </div>
 
-        <!-- ── Amenities ── -->
+        <!-- Amenities -->
         <div class="card mb-16">
           <div class="card-header">
             <span class="card-title">Amenities &amp; Features</span>
@@ -170,7 +123,7 @@ include __DIR__ . '/../includes/sidebar.php';
           </div>
         </div>
 
-        <!-- ── Map + Travel times (FR-07) ── -->
+        <!-- Map + Travel times (FR-07) -->
         <div class="card mb-16">
           <div class="card-header">
             <span class="card-title">
@@ -178,58 +131,40 @@ include __DIR__ . '/../includes/sidebar.php';
             </span>
           </div>
           <div class="card-body" style="padding:0;">
-
-        <!-- Leaflet Map (FR-07) -->
-        <!-- Leaflet renders here — JS below initialises it -->
-        <div id="hostelMap"
-            style="height:320px; width:100%; z-index:1;"
-            data-lat="<?php echo $hostel['latitude']; ?>"
-            data-lng="<?php echo $hostel['longitude']; ?>"
-            data-name="<?php echo htmlspecialchars($hostel['hostelName']); ?>">
-        </div>
-            <!-- Travel times — populated by OSRM API call in detail.js -->
-        <div class="travel-times" id="travelTimes">
-
-        <div class="travel-item">
-          <div class="travel-icon">🚶</div>
-          <div class="travel-info">
-            <div class="travel-mode">Walking</div>
-            <div class="travel-duration" id="walkDuration">
-          Calculating…
-        </div>
-        <div class="travel-via" id="walkDistance">
-          from Strathmore University
-        </div>
-      </div>
-    </div>
-
-    <div class="travel-divider"></div>
-
-    <div class="travel-item">
-      <div class="travel-icon">🚌</div>
-      <div class="travel-info">
-        <div class="travel-mode">Driving</div>
-        <div class="travel-duration" id="driveDuration">
-          Calculating…
-        </div>
-        <div class="travel-via" id="driveDistance">
-          from Strathmore University
-        </div>
-      </div>
-    </div>
-
-  </div>
-
-  <p style="font-size:11px; color:var(--gray-400);
-             padding:0 20px 14px; text-align:center;">
-    Travel times from Strathmore University main gate
-    via OSRM. Map via Leaflet.js &amp; OpenStreetMap.
-  </p>
-
-</div>
+            <div id="hostelMap"
+                 style="height:320px; width:100%; z-index:1;"
+                 data-lat="<?php echo $hostel['latitude']; ?>"
+                 data-lng="<?php echo $hostel['longitude']; ?>"
+                 data-name="<?php echo htmlspecialchars($hostel['hostelName']); ?>">
+            </div>
+            <div class="travel-times" id="travelTimes">
+              <div class="travel-item">
+                <div class="travel-icon">🚶</div>
+                <div class="travel-info">
+                  <div class="travel-mode">Walking</div>
+                  <div class="travel-duration" id="walkDuration">Calculating…</div>
+                  <div class="travel-via" id="walkDistance">from Strathmore University</div>
+                </div>
+              </div>
+              <div class="travel-divider"></div>
+              <div class="travel-item">
+                <div class="travel-icon">🚌</div>
+                <div class="travel-info">
+                  <div class="travel-mode">Driving</div>
+                  <div class="travel-duration" id="driveDuration">Calculating…</div>
+                  <div class="travel-via" id="driveDistance">from Strathmore University</div>
+                </div>
+              </div>
+            </div>
+            <p style="font-size:11px; color:var(--gray-400);
+                       padding:0 20px 14px; text-align:center;">
+              Travel times from Strathmore University main gate
+              via OSRM. Map via Leaflet.js &amp; OpenStreetMap.
+            </p>
+          </div>
         </div>
 
-        <!-- ── Landlord contact ── -->
+        <!-- Landlord contact -->
         <div class="card mb-16">
           <div class="card-header">
             <span class="card-title">Landlord Contact</span>
@@ -245,32 +180,26 @@ include __DIR__ . '/../includes/sidebar.php';
               <div class="contact-item">
                 <div class="contact-label">Phone</div>
                 <div class="contact-value">
-                  <a href="tel:<?php echo htmlspecialchars(
-                    $hostel['landlordPhone']
-                  ); ?>"
+                  <a href="tel:<?php echo htmlspecialchars($hostel['landlordPhone']); ?>"
                      style="color:var(--amber); font-weight:600;">
                     <?php echo htmlspecialchars($hostel['landlordPhone']); ?>
                   </a>
                 </div>
               </div>
             </div>
-            <div class="alert alert-info"
-                 style="margin-top:16px; font-size:13px;">
+            <div class="alert alert-info" style="margin-top:16px; font-size:13px;">
               ℹ️ Contact the landlord directly to arrange a viewing.
-              Final accommodation arrangements are made offline.
             </div>
           </div>
         </div>
 
-        <!-- ── Feedback CTA ── -->
+        <!-- Feedback CTA -->
         <div class="card">
           <div class="card-body"
-               style="display:flex; align-items:center;
-                      gap:16px; flex-wrap:wrap;">
+               style="display:flex; align-items:center; gap:16px; flex-wrap:wrap;">
             <div style="flex:1;">
-              <div style="font-family:var(--font-display);
-                           font-size:17px; color:var(--navy);
-                           margin-bottom:4px;">
+              <div style="font-family:var(--font-display); font-size:17px;
+                           color:var(--navy); margin-bottom:4px;">
                 Have you stayed here?
               </div>
               <div style="font-size:14px; color:var(--gray-600);">
@@ -280,8 +209,7 @@ include __DIR__ . '/../includes/sidebar.php';
             </div>
             <a href="/SU-Housing/student/feedback.php?hostelId=<?php
                  echo $hostel['hostelId']; ?>"
-               class="btn btn-primary"
-               style="flex-shrink:0;">
+               class="btn btn-primary" style="flex-shrink:0;">
               📝 Submit Feedback
             </a>
           </div>
@@ -289,37 +217,27 @@ include __DIR__ . '/../includes/sidebar.php';
 
       </div><!-- end detail-main -->
 
-      <!-- ════ RIGHT: Sticky summary panel ════ -->
+      <!-- RIGHT: Sticky summary panel -->
       <aside class="detail-sidebar">
-
-        <!-- Price + key details -->
         <div class="card detail-summary-card">
           <div class="card-body">
-
             <div class="detail-price">
               KES <?php echo number_format($hostel['priceMin']); ?>
-                – <?php echo number_format($hostel['priceMax']); ?>
-              
+              – <?php echo number_format($hostel['priceMax']); ?>
             </div>
-            <div style="font-size:18px; color:var(--gray-600);
-                         margin-bottom:20px;">
+            <div style="font-size:18px; color:var(--gray-600); margin-bottom:20px;">
               per month
             </div>
-
             <a href="/SU-Housing/student/feedback.php?hostelId=<?php
                  echo $hostel['hostelId']; ?>"
                class="btn btn-primary btn-full mb-16">
               📝 Submit Feedback
             </a>
-
             <div style="font-size:12px; color:var(--gray-400);
                          text-align:center; margin-bottom:20px;">
               You won't be charged. Contact the landlord directly.
             </div>
-
             <hr class="divider"/>
-
-            <!-- Key details -->
             <div class="summary-details">
               <div class="summary-detail-item">
                 <div class="summary-detail-label">Neighbourhood</div>
@@ -347,22 +265,15 @@ include __DIR__ . '/../includes/sidebar.php';
               </div>
               <div class="summary-detail-item">
                 <div class="summary-detail-label">Address</div>
-                <div class="summary-detail-value"
-                     style="font-size:13px;">
-                  <?php echo htmlspecialchars(
-                    $hostel['physicalAddress']
-                  ); ?>
+                <div class="summary-detail-value" style="font-size:13px;">
+                  <?php echo htmlspecialchars($hostel['physicalAddress']); ?>
                 </div>
               </div>
             </div>
-
           </div>
         </div>
 
-        <!-- Verified badge -->
-        <div class="card"
-             style="margin-top:16px; text-align:center;
-                    padding:16px 20px;">
+        <div class="card" style="margin-top:16px; text-align:center; padding:16px 20px;">
           <div style="font-size:24px; margin-bottom:8px;">🏛️</div>
           <div style="font-size:13px; font-weight:600;
                        color:var(--navy); margin-bottom:4px;">
@@ -373,16 +284,15 @@ include __DIR__ . '/../includes/sidebar.php';
             by the Strathmore University Mentorship Office.
           </div>
         </div>
-
       </aside>
 
     </div><!-- end detail-layout -->
-
   </div><!-- end page-body -->
+
 <?php
 $extraScripts = [
-  'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js',
-  '/SU-Housing/assets/js/detail.js',
+    'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js',
+    '/SU-Housing/assets/js/detail.js',
 ];
+include __DIR__ . '/../includes/footer.php';
 ?>
-<?php include __DIR__ . '/../includes/footer.php'; ?>
