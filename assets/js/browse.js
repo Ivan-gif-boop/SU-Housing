@@ -4,22 +4,13 @@
 // FR-09: sort by match score if profile exists
 
 function applyFilters() {
-  const query     = document.getElementById('filterSearch')
-                      ?.value.toLowerCase().trim() || '';
-  const nbh       = document.getElementById('filterNeighbourhood')
-                      ?.value || '';
-  const priceMin  = parseFloat(
-                      document.getElementById('filterPriceMin')?.value
-                    ) || 0;
-  const priceMax  = parseFloat(
-                      document.getElementById('filterPriceMax')?.value
-                    ) || Infinity;
-  const roomType  = document.getElementById('filterRoomType')
-                      ?.value || '';
-  const sortBy    = document.getElementById('sortSelect')
-                      ?.value || 'match';
+  const query    = document.getElementById('filterSearch')?.value.toLowerCase().trim() || '';
+  const nbh      = document.getElementById('filterPhysicalAddress')?.value || '';
+  const priceMin = parseFloat(document.getElementById('filterPriceMin')?.value) || 0;
+  const priceMax = parseFloat(document.getElementById('filterPriceMax')?.value) || Infinity;
+  const roomType = document.getElementById('filterRoomType')?.value || '';
+  const sortBy   = document.getElementById('sortSelect')?.value || 'match';
 
-  // Collect checked amenities
   const checkedAmenities = Array.from(
     document.querySelectorAll('.amenity-filter:checked')
   ).map(el => el.value);
@@ -31,23 +22,22 @@ function applyFilters() {
   let visibleCount = 0;
 
   cards.forEach(card => {
-    const name       = card.dataset.name        || '';
-    const cardNbh    = card.dataset.neighbourhood|| '';
-    const cardPMin   = parseFloat(card.dataset.priceMin) || 0;
-    const cardPMax   = parseFloat(card.dataset.priceMax) || 0;
-    const cardRoom   = card.dataset.roomType    || '';
+    const name          = card.dataset.name          || '';
+    // PHP now renders data-physicalAddress
+    const cardNbh       = card.dataset.physicalAddress || '';
+    const cardPMin      = parseFloat(card.dataset.priceMin) || 0;
+    const cardPMax      = parseFloat(card.dataset.priceMax) || 0;
+    const cardRoom      = card.dataset.roomType      || '';
     const cardAmenities = (card.dataset.amenities || '')
                             .split(',')
-                            .map(a => a.trim());
+                            .map(a => a.trim())
+                            .filter(Boolean);
 
-    // Test each filter
-    const matchesSearch = !query || name.includes(query);
-    const matchesNbh    = !nbh   || cardNbh === nbh;
-    const matchesPrice  = cardPMin <= priceMax && cardPMax >= priceMin;
-    const matchesRoom   = !roomType || cardRoom === roomType;
-    const matchesAmenities = checkedAmenities.every(
-      a => cardAmenities.includes(a)
-    );
+    const matchesSearch    = !query    || name.includes(query);
+    const matchesNbh       = !nbh     || cardNbh === nbh;
+    const matchesPrice     = cardPMin <= priceMax && cardPMax >= priceMin;
+    const matchesRoom      = !roomType || cardRoom === roomType;
+    const matchesAmenities = checkedAmenities.every(a => cardAmenities.includes(a));
 
     const visible = matchesSearch && matchesNbh
                  && matchesPrice  && matchesRoom
@@ -72,12 +62,11 @@ function applyFilters() {
     grid.style.display       = visibleCount === 0 ? 'none' : '';
   }
 
-  // Sort visible cards
   sortCards(sortBy);
 }
 
 function sortCards(sortBy) {
-  const grid  = document.getElementById('hostelGrid');
+  const grid = document.getElementById('hostelGrid');
   if (!grid) return;
 
   const cards = Array.from(grid.querySelectorAll('.hostel-card'));
@@ -88,12 +77,10 @@ function sortCards(sortBy) {
            - (parseFloat(a.dataset.match) || 0);
     }
     if (sortBy === 'price_asc') {
-      return parseFloat(a.dataset.priceMin)
-           - parseFloat(b.dataset.priceMin);
+      return parseFloat(a.dataset.priceMin) - parseFloat(b.dataset.priceMin);
     }
     if (sortBy === 'price_desc') {
-      return parseFloat(b.dataset.priceMax)
-           - parseFloat(a.dataset.priceMax);
+      return parseFloat(b.dataset.priceMax) - parseFloat(a.dataset.priceMax);
     }
     if (sortBy === 'name') {
       return (a.dataset.name || '').localeCompare(b.dataset.name || '');
@@ -101,16 +88,13 @@ function sortCards(sortBy) {
     return 0;
   });
 
-  // Re-append in sorted order
   cards.forEach(card => grid.appendChild(card));
 }
 
 function clearFilters() {
-  const ids = [
-    'filterSearch', 'filterNeighbourhood',
-    'filterPriceMin', 'filterPriceMax', 'filterRoomType',
-  ];
-  ids.forEach(id => {
+  ['filterSearch', 'filterPhysicalAddress',
+   'filterPriceMin', 'filterPriceMax', 'filterRoomType'
+  ].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.value = '';
   });
@@ -121,5 +105,4 @@ function clearFilters() {
   applyFilters();
 }
 
-// Run on page load to set initial sort
 document.addEventListener('DOMContentLoaded', () => applyFilters());

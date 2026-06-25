@@ -1,6 +1,5 @@
 <?php
 $pageTitle = 'Sign In';
-$error     = $error ?? null;
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -8,10 +7,10 @@ $error     = $error ?? null;
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title><?php echo $pageTitle; ?> — SU-Housing</title>
- <link rel="stylesheet" href="/SU-Housing/assets/css/variables.css"/>
-<link rel="stylesheet" href="/SU-Housing/assets/css/base.css"/>
-<link rel="stylesheet" href="/SU-Housing/assets/css/components.css"/>
-<link rel="stylesheet" href="/SU-Housing/assets/css/auth.css"/>
+  <link rel="stylesheet" href="/SU-Housing/assets/css/variables.css"/>
+  <link rel="stylesheet" href="/SU-Housing/assets/css/base.css"/>
+  <link rel="stylesheet" href="/SU-Housing/assets/css/components.css"/>
+  <link rel="stylesheet" href="/SU-Housing/assets/css/auth.css"/>
 </head>
 <body>
 
@@ -25,12 +24,14 @@ $error     = $error ?? null;
     </div>
 
     <div class="auth-hero">
-      <div class="verified-badge">University Verified Accommodation</div>
+      <div class="verified-badge">
+        University Verified Accommodation
+      </div>
       <h1>Find Verified Student Housing <em>Near Campus</em></h1>
       <p>
-        The official Strathmore University portal for discovering
-        and accessing approved hostels and apartments around the
-        Madaraka campus.
+        The official Strathmore University portal for
+        discovering and accessing approved hostels and
+        apartments around the Madaraka campus.
       </p>
     </div>
 
@@ -60,142 +61,317 @@ $error     = $error ?? null;
 
       <h2>Welcome back</h2>
       <p class="auth-subtitle">
-        Sign in with your Strathmore admission number.
+        Sign in to your SU-Housing account.
       </p>
 
-      <?php if ($error): ?>
-        <div class="auth-alert error">
-          ⚠️ <?php echo htmlspecialchars($error); ?>
-        </div>
-      <?php endif; ?>
+      <!-- ── Role toggle ── -->
+      <div class="role-toggle">
+        <button
+          class="role-toggle-btn active"
+          id="studentToggle"
+          onclick="switchLoginRole('student')"
+          type="button"
+        >
+          🎓 Student
+        </button>
+        <button
+          class="role-toggle-btn"
+          id="adminToggle"
+          onclick="switchLoginRole('admin')"
+          type="button"
+        >
+          🔑 Administrator
+        </button>
+      </div>
 
-     <form action="#" method="POST" id="loginForm" novalidate>
+      <!-- API error alert -->
+      <div class="auth-alert error"
+           id="loginError"
+           style="display:none; margin-bottom:16px;">
+      </div>
 
-        <div class="form-group">
-          <label for="admission_no">Admission Number</label>
-          <div class="input-wrap">
-            <span class="input-icon">🎓</span>
-            <input
-              type="text"
-              id="admission_no"
-              name="admission_no"
-              class="form-control"
-              placeholder="e.g. 176830"
-              required
-              autocomplete="username"
-            />
+      <!-- ════ STUDENT LOGIN FORM ════ -->
+      <div id="studentForm">
+
+        <form id="studentLoginForm" novalidate>
+
+          <div class="form-group">
+            <label for="admission_no">
+              Admission Number
+            </label>
+            <div class="input-wrap">
+              <span class="input-icon">🎓</span>
+              <input
+                type="text"
+                id="admission_no"
+                class="form-control"
+                placeholder="e.g. 176830"
+                autocomplete="username"
+              />
+            </div>
+            <div class="form-error"
+                 id="err-admission_no"></div>
           </div>
-          <div class="form-error" id="err-admission_no"></div>
-        </div>
 
-        <div class="form-group">
-          <label for="password">Password</label>
-          <div class="input-wrap">
-            <span class="input-icon">🔒</span>
-            <input
-              type="password"
-              id="password"
-              name="password"
-              class="form-control"
-              placeholder="••••••••"
-              required
-              autocomplete="current-password"
-            />
+          <div class="form-group">
+            <label for="student_password">Password</label>
+            <div class="input-wrap">
+              <span class="input-icon">🔒</span>
+              <input
+                type="password"
+                id="student_password"
+                class="form-control"
+                placeholder="••••••••"
+                autocomplete="current-password"
+              />
+            </div>
+            <div class="form-error"
+                 id="err-student_password"></div>
           </div>
-          <div class="form-error" id="err-password"></div>
-        </div>
 
-        <div style="display:flex; justify-content:flex-end;
-                    margin-top:-8px; margin-bottom:20px;">
-          <a href="#"
-             style="font-size:13px;color:var(--amber);font-weight:500;">
-            Forgot password?
+          <button
+            type="submit"
+            class="btn btn-primary btn-full btn-lg"
+            id="studentSubmitBtn"
+          >
+            Sign In →
+          </button>
+
+        </form>
+
+        <div class="auth-switch">
+          New student?
+          <a href="/SU-Housing/register.php">
+            Create an account
           </a>
         </div>
 
-        <button type="submit" class="btn btn-primary btn-full btn-lg">
-          Sign In →
-        </button>
+      </div><!-- end studentForm -->
 
-      </form>
+      <!-- ════ ADMIN LOGIN FORM ════ -->
+      <div id="adminForm" style="display:none;">
 
-      <div class="auth-switch">
-        New student?
-      <a href="/SU-Housing/register.php">Create an account</a>
-      </div>
+        <div class="alert alert-info"
+             style="margin-bottom:20px; font-size:13px;">
+          🔑 Administrator access only. Contact the Dean of
+          Students office if you need assistance.
+        </div>
+
+        <form id="adminLoginForm" novalidate>
+
+          <div class="form-group">
+            <label for="admin_email">
+              Email Address
+            </label>
+            <div class="input-wrap">
+              <span class="input-icon">✉</span>
+              <input
+                type="email"
+                id="admin_email"
+                class="form-control"
+                placeholder="admin@strathmore.edu"
+                autocomplete="email"
+              />
+            </div>
+            <div class="form-error"
+                 id="err-admin_email"></div>
+          </div>
+
+          <div class="form-group">
+            <label for="admin_password">Password</label>
+            <div class="input-wrap">
+              <span class="input-icon">🔒</span>
+              <input
+                type="password"
+                id="admin_password"
+                class="form-control"
+                placeholder="••••••••"
+                autocomplete="current-password"
+              />
+            </div>
+            <div class="form-error"
+                 id="err-admin_password"></div>
+          </div>
+
+          <button
+            type="submit"
+            class="btn btn-navy btn-full btn-lg"
+            id="adminSubmitBtn"
+          >
+            Sign In as Administrator →
+          </button>
+
+        </form>
+
+      </div><!-- end adminForm -->
 
     </div>
   </div>
 
-</div>
+</div><!-- end auth-page -->
 
 <script>
-const loginForm = document.getElementById('loginForm');
+// ── Role toggle ──
+function switchLoginRole(role) {
+  const studentForm   = document.getElementById('studentForm');
+  const adminForm     = document.getElementById('adminForm');
+  const studentToggle = document.getElementById('studentToggle');
+  const adminToggle   = document.getElementById('adminToggle');
+  const errorEl       = document.getElementById('loginError');
 
-function showError(fieldId, msg) {
+  // Hide error on switch
+  errorEl.style.display = 'none';
+
+  if (role === 'student') {
+    studentForm.style.display   = 'block';
+    adminForm.style.display     = 'none';
+    studentToggle.classList.add('active');
+    adminToggle.classList.remove('active');
+  } else {
+    adminForm.style.display     = 'block';
+    studentForm.style.display   = 'none';
+    adminToggle.classList.add('active');
+    studentToggle.classList.remove('active');
+  }
+}
+
+// ── Show / clear field errors ──
+function showFieldError(fieldId, msg) {
   const el  = document.getElementById('err-' + fieldId);
   const inp = document.getElementById(fieldId);
   if (el)  el.textContent = msg;
   if (inp) inp.classList.add('is-error');
 }
 
-function clearError(fieldId) {
+function clearFieldError(fieldId) {
   const el  = document.getElementById('err-' + fieldId);
   const inp = document.getElementById(fieldId);
   if (el)  el.textContent = '';
   if (inp) inp.classList.remove('is-error');
 }
 
-['admission_no', 'password'].forEach(id => {
-  const el = document.getElementById(id);
-  if (el) el.addEventListener('input', () => clearError(id));
+// Clear errors on input
+[
+  'admission_no',
+  'student_password',
+  'admin_email',
+  'admin_password'
+].forEach(id => {
+  document.getElementById(id)
+    ?.addEventListener('input', () => clearFieldError(id));
 });
 
-loginForm.addEventListener('submit', async function(e) {
+// ── Shared API call ──
+async function submitLogin(payload, btnId) {
+  const errorEl = document.getElementById('loginError');
+  const btn     = document.getElementById(btnId);
+
+  btn.disabled    = true;
+  btn.textContent = 'Signing in…';
+  errorEl.style.display = 'none';
+
+  try {
+    const response = await fetch(
+      '/SU-Housing/api/auth/login.php',
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      }
+    );
+
+    const data = await response.json();
+
+    if (response.ok) {
+      // Redirect based on role
+      if (data.role === 'admin') {
+        window.location.href =
+          '/SU-Housing/admin/dashboard.php';
+      } else {
+        window.location.href =
+          '/SU-Housing/student/dashboard.php';
+      }
+    } else {
+      errorEl.textContent   = data.error || 'Login failed.';
+      errorEl.style.display = 'flex';
+      btn.disabled          = false;
+      btn.textContent       = btnId === 'studentSubmitBtn'
+        ? 'Sign In →'
+        : 'Sign In as Administrator →';
+    }
+
+  } catch (err) {
+    errorEl.textContent   =
+      'Connection error. Please try again.';
+    errorEl.style.display = 'flex';
+    btn.disabled          = false;
+    btn.textContent       = btnId === 'studentSubmitBtn'
+      ? 'Sign In →'
+      : 'Sign In as Administrator →';
+  }
+}
+
+// ── Student form submit ──
+document.getElementById('studentLoginForm')
+  .addEventListener('submit', function(e) {
   e.preventDefault();
   let valid = true;
 
-  const adm = document.getElementById('admission_no').value.trim();
-  if (!adm) {
-    showError('admission_no', 'Admission number is required.');
+  const admNo = document.getElementById('admission_no')
+                  .value.trim();
+  if (!admNo) {
+    showFieldError('admission_no',
+      'Admission number is required.');
     valid = false;
   }
 
-  const pw = document.getElementById('password').value;
+  const pw = document.getElementById('student_password')
+               .value;
   if (!pw) {
-    showError('password', 'Password is required.');
+    showFieldError('student_password',
+      'Password is required.');
     valid = false;
   }
 
   if (!valid) return;
 
-  try {
-    const response = await fetch('/SU-Housing/api/auth/login.php', {
-      method: 'POST',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        admissionNumber: adm,
-        password: pw
-      })
-    });
+  submitLogin(
+    { admissionNumber: admNo, password: pw },
+    'studentSubmitBtn'
+  );
+});
 
-    const data = await response.json();
+// ── Admin form submit ──
+document.getElementById('adminLoginForm')
+  .addEventListener('submit', function(e) {
+  e.preventDefault();
+  let valid = true;
 
-    if (response.ok) {
-      if (data.role === 'admin') {
-        window.location.href = '/SU-Housing/admin/dashboard.php';
-      } else {
-        window.location.href = '/SU-Housing/student/dashboard.php';
-      }
-    } else {
-      showError('admission_no', data.error || 'Login failed. Please try again.');
-    }
-
-  } catch (err) {
-    showError('admission_no', 'Network error. Please try again.');
-    console.error('Login error:', err);
+  const email = document.getElementById('admin_email')
+                  .value.trim();
+  if (!email) {
+    showFieldError('admin_email', 'Email is required.');
+    valid = false;
+  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    showFieldError('admin_email',
+      'Please enter a valid email address.');
+    valid = false;
   }
+
+  const pw = document.getElementById('admin_password')
+               .value;
+  if (!pw) {
+    showFieldError('admin_password',
+      'Password is required.');
+    valid = false;
+  }
+
+  if (!valid) return;
+
+  submitLogin(
+    { email: email, password: pw },
+    'adminSubmitBtn'
+  );
 });
 </script>
 
