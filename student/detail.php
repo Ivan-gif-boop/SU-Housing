@@ -27,7 +27,7 @@ if (!$hostel) {
 }
 
 $hostel['amenities']     = json_decode($hostel['amenities'], true);
-$hostel['neighbourhood'] = $hostel['physicalAddress'];
+$hostel['location'] = $hostel['physicalAddress'];
 $hostel['landlordName']  = 'Contact via Office';
 $hostel['landlordPhone'] = $hostel['landlordContact'];
 
@@ -64,7 +64,7 @@ include __DIR__ . '/../includes/sidebar.php';
                   gap:10px; margin-top:6px; flex-wrap:wrap;">
         <span class="badge badge-green">● Active</span>
         <span class="tag tag-blue">
-          📍 <?php echo htmlspecialchars($hostel['neighbourhood']); ?>
+          📍 <?php echo htmlspecialchars($hostel['location']); ?>
         </span>
         <span class="tag tag-gray">
           <?php echo ucfirst($hostel['roomType']); ?> Room
@@ -240,9 +240,9 @@ include __DIR__ . '/../includes/sidebar.php';
             <hr class="divider"/>
             <div class="summary-details">
               <div class="summary-detail-item">
-                <div class="summary-detail-label">Neighbourhood</div>
+                <div class="summary-detail-label">Location</div>
                 <div class="summary-detail-value">
-                  <?php echo htmlspecialchars($hostel['neighbourhood']); ?>
+                  <?php echo htmlspecialchars($hostel['location']); ?>
                 </div>
               </div>
               <div class="summary-detail-item">

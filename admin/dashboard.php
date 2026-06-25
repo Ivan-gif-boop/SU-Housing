@@ -1,131 +1,117 @@
 <?php
 // admin/dashboard.php
-// FR-12: sentiment analytics charts per hostel
-// FR-13: consolidated dashboard — listings, unclassified feedback,
-//         sentiment analytics
+// FR-12: sentiment analytics chart
+// FR-13: live stats dashboard
 
-// ─────────────────────────────────────────
-// BACKEND HOOK ZONE — Michelle fills this in
-// ─────────────────────────────────────────
-// require_once __DIR__ . '/../includes/auth_check.php';
-// requireAuth('admin');
-// $userName = $_SESSION['user_name'];
-//
-// require_once __DIR__ . '/../includes/db.php';
-// $db = getDB();
-//
-// // Active listings count
-// $totalListings = $db->query(
-//   'SELECT COUNT(*) FROM hostel_listings WHERE isActive = 1'
-// )->fetchColumn();
-//
-// // Unclassified feedback count (isPending)
-// $unclassifiedCount = $db->query(
-//   'SELECT COUNT(*) FROM feedback f
-//    LEFT JOIN sentiment_classifications sc
-//          ON sc.feedbackId = f.feedbackId
-//    WHERE sc.classificationId IS NULL'
-// )->fetchColumn();
-//
-// // Recent unclassified feedback (for classification table)
-// $pendingFeedback = $db->query(
-//   'SELECT f.feedbackId, f.submissionText, f.submittedAt,
-//           h.hostelName, u.admissionNumber, u.fullName
-//    FROM feedback f
-//    JOIN hostel_listings h ON h.hostelId  = f.hostelId
-//    JOIN users           u ON u.userId    = f.studentId
-//    LEFT JOIN sentiment_classifications sc
-//          ON sc.feedbackId = f.feedbackId
-//    WHERE sc.classificationId IS NULL
-//    ORDER BY f.submittedAt DESC
-//    LIMIT 10'
-// )->fetchAll();
-//
-// // Sentiment analytics per hostel (FR-12)
-// $sentimentData = $db->query(
-//   'SELECT h.hostelName,
-//           SUM(sc.sentiment = "positive") AS positive,
-//           SUM(sc.sentiment = "negative") AS negative
-//    FROM hostel_listings h
-//    LEFT JOIN feedback f ON f.hostelId = h.hostelId
-//    LEFT JOIN sentiment_classifications sc
-//          ON sc.feedbackId = f.feedbackId
-//    WHERE h.isActive = 1
-//    GROUP BY h.hostelId, h.hostelName
-//    HAVING positive > 0 OR negative > 0
-//    ORDER BY (positive + negative) DESC'
-// )->fetchAll();
-// ─────────────────────────────────────────
+session_start();
 
-// Frontend defaults
-$pageTitle  = 'Admin Dashboard';
+require_once __DIR__ . '/../includes/auth.php';
+requireAdmin();
+
+require_once __DIR__ . '/../config/db.php';
+$db = getDB();
+
+$userName = $_SESSION['fullName'] ?? 'Administrator';
+
+// ── Summary stats ──
+$activeListings = (int) $db->query(
+    'SELECT COUNT(*) FROM hostel_listings WHERE isActive = 1'
+)->fetchColumn();
+
+$pendingCount = (int) $db->query(
+    'SELECT COUNT(*) FROM feedback WHERE classification IS NULL'
+)->fetchColumn();
+
+$studentCount = (int) $db->query(
+    'SELECT COUNT(*) FROM students'
+)->fetchColumn();
+
+$totalFeedback = (int) $db->query(
+    'SELECT COUNT(*) FROM feedback'
+)->fetchColumn();
+
+// ── All active listings ──
+$listings = $db->query(
+    'SELECT hostelId, hostelName, physicalAddress,
+            priceMin, priceMax, roomType, roomsAvailable, isActive, createdAt
+     FROM hostel_listings
+     WHERE isActive = 1
+     ORDER BY createdAt DESC'
+)->fetchAll();
+
+// ── Per-hostel feedback analytics for chart (FR-12) ──
+$analyticsStmt = $db->query(
+    'SELECT
+        h.hostelId,
+        h.hostelName,
+        COUNT(f.feedbackId) AS totalFeedback,
+        SUM(CASE WHEN f.classification = "positive" THEN 1 ELSE 0 END) AS positiveCount,
+        SUM(CASE WHEN f.classification = "negative" THEN 1 ELSE 0 END) AS negativeCount,
+        SUM(CASE WHEN f.classification IS NULL     THEN 1 ELSE 0 END) AS pendingCount
+     FROM hostel_listings h
+     LEFT JOIN feedback f ON h.hostelId = f.hostelId
+     WHERE h.isActive = 1
+     GROUP BY h.hostelId, h.hostelName
+     ORDER BY totalFeedback DESC'
+);
+$analytics = $analyticsStmt->fetchAll();
+
+// Add overallSentiment label per hostel
+foreach ($analytics as &$row) {
+    $pos = (int) $row['positiveCount'];
+    $neg = (int) $row['negativeCount'];
+    if ($pos + $neg === 0) {
+        $row['overallSentiment'] = 'no_feedback';
+    } elseif ($pos >= $neg) {
+        $row['overallSentiment'] = 'positive';
+    } else {
+        $row['overallSentiment'] = 'negative';
+    }
+}
+unset($row);
+
+// ── Unreviewed (pending) feedback for admin table ──
+$unreviewedStmt = $db->prepare(
+    'SELECT
+        f.feedbackId,
+        f.submissionText,
+        f.submittedAt,
+        f.hostelAccuracy,
+        f.propertyCondition,
+        f.issuesEncountered,
+        s.admissionNumber,
+        s.fullName,
+        h.hostelName,
+        h.hostelId
+     FROM feedback f
+     JOIN students        s ON f.studentId = s.studentId
+     JOIN hostel_listings h ON f.hostelId  = h.hostelId
+     WHERE f.classification IS NULL
+     ORDER BY f.submittedAt ASC'
+);
+$unreviewedStmt->execute();
+$unreviewedFeedback = $unreviewedStmt->fetchAll();
+
+// ── Recent activity — last 5 submissions ──
+$recentActivity = $db->query(
+    'SELECT
+        f.feedbackId,
+        f.submissionText,
+        f.submittedAt,
+        f.classification,
+        s.admissionNumber,
+        h.hostelName
+     FROM feedback f
+     JOIN students        s ON f.studentId = s.studentId
+     JOIN hostel_listings h ON f.hostelId  = h.hostelId
+     ORDER BY f.submittedAt DESC
+     LIMIT 5'
+)->fetchAll();
+
+// ── Page meta ──
+$pageTitle  = 'Dashboard';
 $activePage = 'dashboard';
 $userRole   = 'admin';
-$userName   = 'Dean of Students';
-
-// Mock stats
-$totalListings     = 6;
-$unclassifiedCount = 3;
-
-// Mock pending feedback
-$pendingFeedback = [
-  [
-    'feedbackId'     => 3,
-    'hostelName'     => 'Madaraka Lodge',
-    'fullName'       => 'Brian Mwangi',
-    'admissionNumber'=> '176844',
-    'submissionText' => 'WiFi router on floor 2 has been down
-      for 10 days with no update from management.',
-    'submittedAt'    => '2026-04-17 08:14:00',
-  ],
-  [
-    'feedbackId'     => 4,
-    'hostelName'     => 'Westview Apartments',
-    'fullName'       => 'Cynthia Otieno',
-    'admissionNumber'=> '176801',
-    'submissionText' => 'The listing says backup power but the
-      generator has not worked in over a month.',
-    'submittedAt'    => '2026-04-15 11:30:00',
-  ],
-  [
-    'feedbackId'     => 5,
-    'hostelName'     => 'Sunrise Hostel',
-    'fullName'       => 'David Njoroge',
-    'admissionNumber'=> '176867',
-    'submissionText' => 'Main gate lock has been broken for two
-      weeks. Security is compromised.',
-    'submittedAt'    => '2026-04-14 16:45:00',
-  ],
-];
-
-// Mock sentiment analytics data (FR-12)
-$sentimentData = [
-  [
-    'hostelName' => 'Keri Apartments',
-    'positive'   => 8,
-    'negative'   => 2,
-  ],
-  [
-    'hostelName' => 'Nairobi West',
-    'positive'   => 5,
-    'negative'   => 3,
-  ],
-  [
-    'hostelName' => "Lang'ata Court",
-    'positive'   => 6,
-    'negative'   => 1,
-  ],
-  [
-    'hostelName' => 'Green Park Residences',
-    'positive'   => 2,
-    'negative'   => 5,
-  ],
-  [
-    'hostelName' => 'Madaraka Lodge',
-    'positive'   => 3,
-    'negative'   => 4,
-  ],
-];
 
 include __DIR__ . '/../includes/header.php';
 include __DIR__ . '/../includes/sidebar.php';
@@ -134,208 +120,253 @@ include __DIR__ . '/../includes/sidebar.php';
   <!-- ── Page header ── -->
   <div class="page-header">
     <div class="page-title-group">
-      <div class="page-breadcrumb">Admin › Home</div>
-      <h1 class="page-title">Administrator Dashboard</h1>
+      <div class="page-breadcrumb">Admin</div>
+      <h1 class="page-title">
+        Welcome, <?php echo htmlspecialchars(
+          explode(' ', $userName)[0]
+        ); ?> 👋
+      </h1>
       <p class="page-subtitle">
-        Office of the Dean of Students — Accommodation Management
+        SU-Housing administration dashboard.
       </p>
     </div>
     <div class="page-actions">
-      <a href="/SU-Housing/admin/listings.php"
-         class="btn btn-primary">
-        + Add New Listing
+      <a href="/SU-Housing/admin/listings.php" class="btn btn-primary">
+        + Add Listing
       </a>
     </div>
   </div>
 
   <div class="page-body">
 
-    <!-- ── Stats row (FR-13) ── -->
+    <!-- ── Stats row ── -->
     <div class="stats-grid">
 
       <div class="stat-card animate-fade-up delay-1">
         <div class="stat-icon amber">🏠</div>
         <div>
-          <div class="stat-num">
-            <?php echo $totalListings; ?>
-          </div>
+          <div class="stat-num"><?php echo $activeListings; ?></div>
           <div class="stat-label">Active Listings</div>
         </div>
       </div>
 
       <div class="stat-card animate-fade-up delay-2">
-        <div class="stat-icon red">📋</div>
+        <div class="stat-icon red">⏳</div>
         <div>
-          <div class="stat-num">
-            <?php echo $unclassifiedCount; ?>
-          </div>
-          <div class="stat-label">Unclassified Feedback</div>
+          <div class="stat-num"><?php echo $pendingCount; ?></div>
+          <div class="stat-label">Pending Feedback</div>
         </div>
       </div>
 
       <div class="stat-card animate-fade-up delay-3">
-        <div class="stat-icon green">✓</div>
+        <div class="stat-icon blue">🎓</div>
         <div>
-          <div class="stat-num">
-            <?php
-            $totalClassified = array_sum(
-              array_map(
-                fn($r) => $r['positive'] + $r['negative'],
-                $sentimentData
-              )
-            );
-            echo $totalClassified;
-            ?>
-          </div>
-          <div class="stat-label">Classified Feedback</div>
+          <div class="stat-num"><?php echo $studentCount; ?></div>
+          <div class="stat-label">Registered Students</div>
+        </div>
+      </div>
+
+      <div class="stat-card animate-fade-up delay-4">
+        <div class="stat-icon green">📋</div>
+        <div>
+          <div class="stat-num"><?php echo $totalFeedback; ?></div>
+          <div class="stat-label">Total Feedback</div>
         </div>
       </div>
 
     </div>
 
-    <!-- ── Sentiment Analytics (FR-12) ── -->
+    <!-- ── Sentiment Analytics Chart (FR-12) ── -->
     <div class="section-header">
       <div>
-        <h2 class="section-title">Sentiment Analytics</h2>
+        <h2 class="section-title">Feedback Sentiment by Hostel</h2>
         <p class="section-subtitle">
-          Positive vs negative feedback per hostel listing
+          Positive vs negative classifications per listing
         </p>
       </div>
-      <a href="/SU-Housing/admin/feedback.php"
-         class="btn btn-ghost">
-        View all feedback →
+    </div>
+
+    <div class="card mb-24">
+      <div class="card-body" style="height:320px; position:relative;">
+        <?php if (empty($analytics) || array_sum(array_column($analytics, 'totalFeedback')) === 0): ?>
+          <div style="display:flex; align-items:center; justify-content:center;
+                      height:100%; flex-direction:column; gap:8px;
+                      color:var(--gray-400);">
+            <span style="font-size:36px;">📊</span>
+            <p style="font-size:14px;">No feedback submitted yet.</p>
+          </div>
+        <?php else: ?>
+          <canvas id="sentimentChart"></canvas>
+        <?php endif; ?>
+      </div>
+    </div>
+
+    <!-- Pass analytics data to JS (FR-12) -->
+    <script>
+      window.SENTIMENT_DATA = <?php echo json_encode(array_map(fn($r) => [
+          'hostelName' => $r['hostelName'],
+          'positive'   => (int) $r['positiveCount'],
+          'negative'   => (int) $r['negativeCount'],
+      ], $analytics)); ?>;
+    </script>
+
+    <!-- ── Pending feedback table (FR-13) ── -->
+    <?php if (!empty($unreviewedFeedback)): ?>
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">
+            Pending Classification
+            <span class="nav-badge"><?php echo $pendingCount; ?></span>
+          </h2>
+          <p class="section-subtitle">
+            Feedback awaiting your positive / negative classification
+          </p>
+        </div>
+        <a href="/SU-Housing/admin/feedback.php" class="btn btn-ghost">
+          View all →
+        </a>
+      </div>
+
+      <?php foreach ($unreviewedFeedback as $fb):
+        $isPending = true;
+        $fb['sentiment'] = null; // ensure card renders pending state
+      ?>
+        <?php include __DIR__ . '/../includes/feedback_card.php'; ?>
+      <?php endforeach; ?>
+    <?php endif; ?>
+
+    <!-- ── Recent activity ── -->
+    <div class="section-header" style="margin-top:32px;">
+      <div>
+        <h2 class="section-title">Recent Activity</h2>
+        <p class="section-subtitle">Last 5 feedback submissions</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="table-wrap">
+        <?php if (empty($recentActivity)): ?>
+          <div class="empty-state" style="padding:40px;">
+            <div class="empty-icon">📋</div>
+            <h3>No activity yet</h3>
+            <p>Recent feedback submissions will appear here.</p>
+          </div>
+        <?php else: ?>
+          <table>
+            <thead>
+              <tr>
+                <th>Student</th>
+                <th>Hostel</th>
+                <th>Submitted</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <?php foreach ($recentActivity as $a): ?>
+                <tr>
+                  <td><?php echo htmlspecialchars($a['admissionNumber']); ?></td>
+                  <td><?php echo htmlspecialchars($a['hostelName']); ?></td>
+                  <td style="font-size:13px; color:var(--gray-500);">
+                    <?php echo date('d M Y, H:i',
+                      strtotime($a['submittedAt'])); ?>
+                  </td>
+                  <td>
+                    <?php if ($a['classification'] === 'positive'): ?>
+                      <span class="badge badge-green">✓ Positive</span>
+                    <?php elseif ($a['classification'] === 'negative'): ?>
+                      <span class="badge badge-red">✗ Negative</span>
+                    <?php else: ?>
+                      <span class="badge badge-gray">⏳ Pending</span>
+                    <?php endif; ?>
+                  </td>
+                </tr>
+              <?php endforeach; ?>
+            </tbody>
+          </table>
+        <?php endif; ?>
+      </div>
+    </div>
+
+    <!-- ── Listings overview ── -->
+    <div class="section-header" style="margin-top:32px;">
+      <div>
+        <h2 class="section-title">Active Listings</h2>
+        <p class="section-subtitle">
+          <?php echo $activeListings; ?> hostels currently live
+        </p>
+      </div>
+      <a href="/SU-Housing/admin/listings.php" class="btn btn-ghost">
+        Manage →
       </a>
     </div>
 
-    <div class="card mb-16">
-      <div class="card-body">
-
-        <?php if (empty($sentimentData)): ?>
-          <div class="empty-state" style="padding:40px 24px;">
-            <div class="empty-icon">📊</div>
-            <h3>No classified feedback yet</h3>
+    <div class="card">
+      <div class="table-wrap">
+        <?php if (empty($listings)): ?>
+          <div class="empty-state" style="padding:40px;">
+            <div class="empty-icon">🏠</div>
+            <h3>No active listings</h3>
             <p>
-              Classify student feedback below to generate
-              sentiment analytics.
+              <a href="/SU-Housing/admin/listings.php"
+                 class="btn btn-primary mt-16">
+                + Add First Listing
+              </a>
             </p>
           </div>
-
         <?php else: ?>
-          <!-- Chart canvas — Chart.js renders here -->
-          <div style="position:relative; height:320px;">
-            <canvas id="sentimentChart"></canvas>
-          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Hostel Name</th>
+                <th>Physical Address</th>
+                <th>Price Range</th>
+                <th>Room Type</th>
+                <th>Rooms</th>
+                <th>Sentiment</th>
+              </tr>
+            </thead>
+            <tbody>
+              <?php
+              // Build a sentiment map from analytics
+              $sentimentMap = [];
+              foreach ($analytics as $a) {
+                  $sentimentMap[$a['hostelId']] = $a['overallSentiment'];
+              }
+              foreach ($listings as $l):
+                  $sentiment = $sentimentMap[$l['hostelId']] ?? 'no_feedback';
+              ?>
+                <tr>
+                  <td><strong><?php echo htmlspecialchars($l['hostelName']); ?></strong></td>
+                  <td><?php echo htmlspecialchars($l['physicalAddress']); ?></td>
+                  <td>
+                    KES <?php echo number_format($l['priceMin']); ?>
+                    – <?php echo number_format($l['priceMax']); ?>
+                  </td>
+                  <td><?php echo ucfirst($l['roomType']); ?></td>
+                  <td><?php echo $l['roomsAvailable']; ?></td>
+                  <td>
+                    <?php if ($sentiment === 'positive'): ?>
+                      <span class="badge badge-green">✓ Positive</span>
+                    <?php elseif ($sentiment === 'negative'): ?>
+                      <span class="badge badge-red">✗ Negative</span>
+                    <?php else: ?>
+                      <span class="badge badge-gray">— No feedback</span>
+                    <?php endif; ?>
+                  </td>
+                </tr>
+              <?php endforeach; ?>
+            </tbody>
+          </table>
         <?php endif; ?>
-
       </div>
     </div>
-
-    <!-- ── Unclassified Feedback (FR-11, FR-13) ── -->
-    <div class="section-header">
-      <div>
-        <h2 class="section-title">
-          Unclassified Feedback
-          <?php if ($unclassifiedCount > 0): ?>
-            <span class="nav-badge" style="
-              font-size:13px; padding:3px 10px;
-              vertical-align:middle; margin-left:6px;">
-              <?php echo $unclassifiedCount; ?>
-            </span>
-          <?php endif; ?>
-        </h2>
-        <p class="section-subtitle">
-          Classify each submission as positive or negative
-          to update the analytics dashboard
-        </p>
-      </div>
-    </div>
-
-    <?php if (empty($pendingFeedback)): ?>
-      <div class="card">
-        <div class="empty-state" style="padding:40px 24px;">
-          <div class="empty-icon">✅</div>
-          <h3>All feedback classified</h3>
-          <p>No pending submissions to review.</p>
-        </div>
-      </div>
-
-    <?php else: ?>
-      <?php foreach ($pendingFeedback as $fb): ?>
-        <div class="feedback-classify-card" id="fb-<?php
-             echo $fb['feedbackId']; ?>">
-
-          <div class="fbc-header">
-            <div>
-              <div class="fbc-hostel">
-                <?php echo htmlspecialchars($fb['hostelName']); ?>
-              </div>
-              <div class="fbc-meta">
-                <?php echo htmlspecialchars($fb['fullName']); ?>
-                · Admission:
-                <?php echo htmlspecialchars($fb['admissionNumber']); ?>
-                ·
-                <?php echo date(
-                  'j M Y',
-                  strtotime($fb['submittedAt'])
-                ); ?>
-              </div>
-            </div>
-            <span class="badge badge-amber">Pending</span>
-          </div>
-
-          <p class="fbc-text">
-            "<?php echo nl2br(
-              htmlspecialchars($fb['submissionText'])
-            ); ?>"
-          </p>
-
-          <!--
-            Backend hook:
-            These buttons POST to
-            /SU-Housing/api/feedback/classify.php?id={feedbackId}
-            with sentiment=positive or sentiment=negative
-            Michelle wires up the fetch() call in the JS below
-          -->
-          <div class="fbc-actions">
-            <button
-              class="btn btn-success btn-sm"
-              onclick="classifyFeedback(
-                <?php echo $fb['feedbackId']; ?>,
-                'positive'
-              )"
-            >
-              ✓ Positive
-            </button>
-            <button
-              class="btn btn-danger btn-sm"
-              onclick="classifyFeedback(
-                <?php echo $fb['feedbackId']; ?>,
-                'negative'
-              )"
-            >
-              ✗ Negative
-            </button>
-          </div>
-
-        </div>
-      <?php endforeach; ?>
-
-    <?php endif; ?>
 
   </div><!-- end page-body -->
 
 <?php
-// Pass sentiment data to JS
-$sentimentJson = json_encode($sentimentData);
-
 $extraScripts = [
-  'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js',
-  '/SU-Housing/assets/js/dashboard.js',
+    'https://cdn.jsdelivr.net/npm/chart.js',
+    '/SU-Housing/assets/js/dashboard.js',
 ];
+include __DIR__ . '/../includes/footer.php';
 ?>
-<script>
-  // Sentiment data from PHP — available to dashboard.js
-  window.SENTIMENT_DATA = <?php echo $sentimentJson; ?>;
-</script>
-
-<?php include __DIR__ . '/../includes/footer.php'; ?>

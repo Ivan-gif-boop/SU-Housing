@@ -4,110 +4,112 @@
 // FR-06: filter by location, price range, room type, amenities
 // FR-09: preference match banner if student has a profile
 
-// ─────────────────────────────────────────
-// BACKEND HOOK ZONE — Michelle fills this in
-// ─────────────────────────────────────────
-// require_once __DIR__ . '/../includes/auth_check.php';
-// requireAuth('student');
-// $userName = $_SESSION['user_name'];
-//
-// require_once __DIR__ . '/../includes/db.php';
-// $db = getDB();
-//
-// // Check if student has preference profile (FR-09)
-// $stmt = $db->prepare(
-//   'SELECT profileId FROM student_preference_profiles WHERE userId = ?'
-// );
-// $stmt->execute([$_SESSION['user_id']]);
-// $hasProfile = (bool) $stmt->fetch();
-//
-// // Fetch listings — search + filter applied server side
-// // See api/listings/index.php for full query logic
-// // $listings comes from the API response
-// ─────────────────────────────────────────
+session_start();
 
-// Frontend defaults
+require_once __DIR__ . '/../includes/auth.php';
+requireStudent();
+
+require_once __DIR__ . '/../config/db.php';
+$db = getDB();
+
+$studentId = currentStudentId();
+$userName  = $_SESSION['fullName'] ?? 'Student';
+
+// ── Check if student has a preference profile (FR-09) ──
+$profStmt = $db->prepare(
+    'SELECT * FROM student_preference_profiles WHERE studentId = ?'
+);
+$profStmt->execute([$studentId]);
+$profile    = $profStmt->fetch();
+$hasProfile = (bool) $profile;
+
+// ── Build filter conditions from GET params ──
+$conditions = ['l.isActive = 1'];
+$params     = [];
+
+if (!empty($_GET['q'])) {
+    $conditions[] = '(l.hostelName LIKE ? OR l.physicalAddress LIKE ? OR l.description LIKE ?)';
+    $like         = '%' . $_GET['q'] . '%';
+    $params       = array_merge($params, [$like, $like, $like]);
+}
+if (!empty($_GET['location'])) {
+    $conditions[] = 'l.neighbourhood LIKE ?';
+    $params[]     = '%' . $_GET['location'] . '%';
+}
+if (!empty($_GET['priceMin'])) {
+    $conditions[] = 'l.priceMax >= ?';
+    $params[]     = (float) $_GET['priceMin'];
+}
+if (!empty($_GET['priceMax'])) {
+    $conditions[] = 'l.priceMin <= ?';
+    $params[]     = (float) $_GET['priceMax'];
+}
+if (!empty($_GET['roomType'])) {
+    $conditions[] = 'l.roomType = ?';
+    $params[]     = $_GET['roomType'];
+}
+if (!empty($_GET['amenities'])) {
+    foreach (explode(',', $_GET['amenities']) as $amenity) {
+        $conditions[] = 'JSON_CONTAINS(l.amenities, ?)';
+        $params[]     = json_encode(trim($amenity));
+    }
+}
+
+$where = implode(' AND ', $conditions);
+$stmt  = $db->prepare(
+    "SELECT hostelId, hostelName, physicalAddress,
+            priceMin, priceMax, roomType, amenities, roomsAvailable,
+            latitude, longitude
+     FROM hostel_listings l
+     WHERE $where
+     ORDER BY createdAt DESC"
+);
+$stmt->execute($params);
+$listings = $stmt->fetchAll();
+
+// Decode amenities + score against profile (FR-09)
+foreach ($listings as &$h) {
+    $h['amenities']  = json_decode($h['amenities'], true) ?? [];
+    // 'physicalAddress' alias so browse.js data-attribute works
+    $h['physicalAddress'] = $h['physicalAddress'];
+    $h['matchScore'] = 0;
+
+    if ($profile) {
+        $score    = 0;
+        $maxScore = 0;
+
+        if ($profile['budgetMin'] !== null && $profile['budgetMax'] !== null) {
+            $maxScore++;
+            if ($h['priceMin'] <= $profile['budgetMax'] &&
+                $h['priceMax'] >= $profile['budgetMin']) {
+                $score++;
+            }
+        }
+        if ($profile['roomTypePreference'] !== null) {
+            $maxScore++;
+            if ($h['roomType'] === $profile['roomTypePreference']) $score++;
+        }
+        if ($profile['genderPreference'] !== null && isset($h['genderPolicy'])) {
+            $maxScore++;
+            if ($h['genderPolicy'] === $profile['genderPreference']) $score++;
+        }
+
+        $h['matchScore'] = $maxScore > 0
+            ? (int) round(($score / $maxScore) * 100)
+            : 0;
+    }
+}
+unset($h);
+
+// Sort by match score if profile exists
+if ($hasProfile) {
+    usort($listings, fn($a, $b) => $b['matchScore'] <=> $a['matchScore']);
+}
+
+// ── Page meta ──
 $pageTitle  = 'Browse Hostels';
 $activePage = 'browse';
 $userRole   = 'student';
-$userName   = 'Ivan Wachira';
-$hasProfile = true; // toggle to false to test no-profile state
-
-// Mock listings
-$listings = [
-  [
-    'hostelId'      => 1,
-    'hostelName'    => 'Keri Apartments',
-    'location' => 'Madaraka',
-    'priceMin'      => 15500,
-    'priceMax'      => 20000,
-    'roomType'      => 'single',
-    'roomsAvailable'=> 5,
-    'amenities'     => ['WiFi', 'Water', 'Security', 'CCTV'],
-    'isActive'      => 1,
-    'matchScore'    => 92,
-  ],
-  [
-    'hostelId'      => 2,
-    'hostelName'    => 'Nyaya Lodge',
-    'location' => 'Nairobi West',
-    'priceMin'      => 10000,
-    'priceMax'      => 15000,
-    'roomType'      => 'studio',
-    'roomsAvailable'=> 8,
-    'amenities'     => ['WiFi', 'Security', 'Parking', 'Gym'],
-    'isActive'      => 1,
-    'matchScore'    => 85,
-  ],
-  [
-    'hostelId'      => 3,
-    'hostelName'    => 'Green Park Residences',
-    'location' => "Lang'ata",
-    'priceMin'      => 6500,
-    'priceMax'      => 9000,
-    'roomType'      => 'shared',
-    'roomsAvailable'=> 12,
-    'amenities'     => ['Water', 'Security', 'Laundry'],
-    'isActive'      => 1,
-    'matchScore'    => 78,
-  ],
-  [
-    'hostelId'      => 4,
-    'hostelName'    => 'Westview Apartments',
-    'location' => 'Nairobi West',
-    'priceMin'      => 12000,
-    'priceMax'      => 18000,
-    'roomType'      => 'ensuite',
-    'roomsAvailable'=> 3,
-    'amenities'     => ['WiFi', 'Water', 'Security', 'Parking', 'Backup Power'],
-    'isActive'      => 1,
-    'matchScore'    => 71,
-  ],
-  [
-    'hostelId'      => 5,
-    'hostelName'    => 'Madaraka Heights',
-    'location' => 'Madaraka',
-    'priceMin'      => 5000,
-    'priceMax'      => 7500,
-    'roomType'      => 'single',
-    'roomsAvailable'=> 20,
-    'amenities'     => ['Water', 'Security', 'WiFi'],
-    'isActive'      => 1,
-    'matchScore'    => 65,
-  ],
-  [
-    'hostelId'      => 6,
-    'hostelName'    => "Lang'ata Court",
-    'location' => "Lang'ata",
-    'priceMin'      => 9000,
-    'priceMax'      => 13000,
-    'roomType'      => 'ensuite',
-    'roomsAvailable'=> 6,
-    'amenities'     => ['WiFi', 'Water', 'Laundry', 'Security', 'CCTV'],
-    'isActive'      => 1,
-    'matchScore'    => 60,
-  ],
-];
 
 include __DIR__ . '/../includes/header.php';
 include __DIR__ . '/../includes/sidebar.php';
@@ -129,8 +131,7 @@ include __DIR__ . '/../includes/sidebar.php';
 
     <!-- ── Preference match banner (FR-09) ── -->
     <?php if ($hasProfile): ?>
-      <div class="alert alert-success mb-24"
-           style="align-items:center;">
+      <div class="alert alert-success mb-24" style="align-items:center;">
         <span style="font-size:18px;">✓</span>
         <div style="flex:1;">
           Results are ranked by match with your
@@ -143,8 +144,7 @@ include __DIR__ . '/../includes/sidebar.php';
         </a>
       </div>
     <?php else: ?>
-      <div class="alert alert-info mb-24"
-           style="align-items:center;">
+      <div class="alert alert-info mb-24" style="align-items:center;">
         <span style="font-size:18px;">💡</span>
         <div style="flex:1;">
           <strong>Get personalised recommendations.</strong>
@@ -152,8 +152,7 @@ include __DIR__ . '/../includes/sidebar.php';
           on each listing.
         </div>
         <a href="/SU-Housing/student/preference_profile.php?new=0"
-           class="btn btn-navy btn-sm"
-           style="flex-shrink:0;">
+           class="btn btn-navy btn-sm" style="flex-shrink:0;">
           Set Up Profile
         </a>
       </div>
@@ -189,16 +188,25 @@ include __DIR__ . '/../includes/sidebar.php';
           </div>
         </div>
 
-        <!-- Location -->
+        <!-- Neighbourhood / Location -->
         <div class="filter-group">
-          <label class="filter-label">Location</label>
-          <select id="filterLocation"
+          <label class="filter-label">Neighbourhood</label>
+          <select id="filterNeighbourhood"
                   class="form-control"
                   onchange="applyFilters()">
-            <option value="">All Locations</option>
-            <option value="Madaraka">Madaraka</option>
-            <option value="Nairobi West">Nairobi West</option>
-            <option value="Lang'ata">Lang'ata</option>
+            <option value="">All Neighbourhoods</option>
+            <?php
+            // Build neighbourhood options dynamically from DB results
+            $neighbourhoods = array_unique(
+                array_column($listings, 'neighbourhood')
+            );
+            sort($neighbourhoods);
+            foreach ($neighbourhoods as $nbh):
+            ?>
+              <option value="<?php echo htmlspecialchars($nbh); ?>">
+                <?php echo htmlspecialchars($nbh); ?>
+              </option>
+            <?php endforeach; ?>
           </select>
         </div>
 
@@ -250,7 +258,7 @@ include __DIR__ . '/../includes/sidebar.php';
             $amenityOptions = [
               'WiFi', 'Water', 'Security',
               'Parking', 'Laundry',
-              'Backup Power', 'Gym',
+              'Backup Power', 'Gym', 'CCTV',
             ];
             foreach ($amenityOptions as $a):
             ?>
@@ -268,8 +276,7 @@ include __DIR__ . '/../includes/sidebar.php';
           </div>
         </div>
 
-        <button class="btn btn-outline btn-full"
-                onclick="clearFilters()">
+        <button class="btn btn-outline btn-full" onclick="clearFilters()">
           Clear Filters
         </button>
 
@@ -281,14 +288,10 @@ include __DIR__ . '/../includes/sidebar.php';
         <!-- Results count + sort -->
         <div class="results-bar">
           <span class="results-count" id="resultsCount">
-            Showing
-            <strong><?php echo count($listings); ?></strong>
-            results
+            Showing <strong><?php echo count($listings); ?></strong> results
           </span>
           <div style="display:flex; align-items:center; gap:8px;">
-            <label style="font-size:13px;color:var(--gray-600);">
-              Sort by
-            </label>
+            <label style="font-size:13px;color:var(--gray-600);">Sort by</label>
             <select id="sortSelect"
                     class="form-control"
                     onchange="applyFilters()"
@@ -306,29 +309,20 @@ include __DIR__ . '/../includes/sidebar.php';
         <!-- Hostel grid -->
         <div class="hostel-grid" id="hostelGrid">
           <?php foreach ($listings as $h): ?>
-            <?php
-            $amenities = is_string($h['amenities'])
-              ? json_decode($h['amenities'], true)
-              : $h['amenities'];
-            ?>
             <div class="hostel-card animate-fade-up"
                  data-name="<?php echo strtolower(htmlspecialchars($h['hostelName'])); ?>"
-                 data-location="<?php echo htmlspecialchars($h['location']); ?>"
+                 data-physical-address="<?php echo htmlspecialchars($h['physicalAddress']); ?>"
                  data-price-min="<?php echo $h['priceMin']; ?>"
                  data-price-max="<?php echo $h['priceMax']; ?>"
                  data-room-type="<?php echo $h['roomType']; ?>"
-                 data-amenities="<?php echo htmlspecialchars(
-                   implode(',', $amenities)
-                 ); ?>"
+                 data-amenities="<?php echo htmlspecialchars(implode(',', $h['amenities'])); ?>"
                  data-match="<?php echo $h['matchScore']; ?>"
             >
 
-              <!-- Image -->
               <div class="hostel-card-img">
                 <div class="hostel-card-img-inner">
                   <span class="hostel-card-emoji">🏠</span>
                 </div>
-                <!-- Match badge (FR-09) -->
                 <?php if ($hasProfile): ?>
                   <span class="match-badge">
                     <?php echo $h['matchScore']; ?>% match
@@ -340,38 +334,35 @@ include __DIR__ . '/../includes/sidebar.php';
                 </span>
               </div>
 
-              <!-- Body -->
               <div class="hostel-card-body">
                 <h3 class="hostel-name">
                   <?php echo htmlspecialchars($h['hostelName']); ?>
                 </h3>
                 <div class="hostel-location">
-                  📍 <?php echo htmlspecialchars($h['location']); ?>
+                  📍 <?php echo htmlspecialchars($h['physicalAddress']); ?>
                   <span class="hostel-rooms-pill">
                     · <?php echo $h['roomsAvailable']; ?> rooms
                   </span>
                 </div>
                 <div class="hostel-amenities">
-                  <?php foreach (array_slice($amenities, 0, 3) as $a): ?>
+                  <?php foreach (array_slice($h['amenities'], 0, 3) as $a): ?>
                     <span class="tag tag-blue">
                       <?php echo htmlspecialchars($a); ?>
                     </span>
                   <?php endforeach; ?>
-                  <?php if (count($amenities) > 3): ?>
+                  <?php if (count($h['amenities']) > 3): ?>
                     <span class="tag tag-gray">
-                      +<?php echo count($amenities) - 3; ?> more
+                      +<?php echo count($h['amenities']) - 3; ?> more
                     </span>
                   <?php endif; ?>
                 </div>
               </div>
 
-              <!-- Footer -->
               <div class="hostel-card-footer">
                 <span class="tag tag-gray">
                   <?php echo ucfirst($h['roomType']); ?>
                 </span>
-                <a href="/SU-Housing/student/detail.php?id=<?php
-                     echo $h['hostelId']; ?>"
+                <a href="/SU-Housing/student/detail.php?id=<?php echo $h['hostelId']; ?>"
                    class="btn btn-primary btn-sm">
                   View →
                 </a>
@@ -382,12 +373,12 @@ include __DIR__ . '/../includes/sidebar.php';
         </div>
 
         <!-- Empty state -->
-        <div class="empty-state" id="emptyState" style="display:none;">
+        <div class="empty-state" id="emptyState"
+             style="display:<?php echo empty($listings) ? 'flex' : 'none'; ?>;">
           <div class="empty-icon">🔍</div>
           <h3>No hostels found</h3>
           <p>Try adjusting your filters or search term.</p>
-          <button class="btn btn-outline mt-16"
-                  onclick="clearFilters()">
+          <button class="btn btn-outline mt-16" onclick="clearFilters()">
             Clear Filters
           </button>
         </div>
@@ -397,8 +388,8 @@ include __DIR__ . '/../includes/sidebar.php';
     </div><!-- end browse-layout -->
 
   </div><!-- end page-body -->
-  <?php
-// Extra scripts for this page
+
+<?php
 $extraScripts = ['/SU-Housing/assets/js/browse.js'];
+include __DIR__ . '/../includes/footer.php';
 ?>
-<?php include __DIR__ . '/../includes/footer.php'; ?>

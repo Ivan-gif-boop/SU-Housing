@@ -1,17 +1,16 @@
 // assets/js/listings.js
-// FR-02: add listing
-// FR-04: remove listing (soft delete)
+// FR-02: add / edit listing  → POST /SU-Housing/api/listings.php
+// FR-04: remove listing      → DELETE /SU-Housing/api/listings.php?id={id}
+//         restore listing    → PATCH  /SU-Housing/api/listings.php?id={id}
 
 // ── Filter table ──
 function filterListings() {
-  const query  = document.getElementById('listingSearch')
-                   ?.value.toLowerCase() || '';
-  const status = document.getElementById('statusFilter')
-                   ?.value || 'all';
+  const query  = document.getElementById('listingSearch')?.value.toLowerCase() || '';
+  const status = document.getElementById('statusFilter')?.value || 'all';
 
   document.querySelectorAll('.listing-row').forEach(row => {
-    const name   = row.dataset.name    || '';
-    const active = row.dataset.active  || '1';
+    const name   = row.dataset.name   || '';
+    const active = row.dataset.active || '1';
 
     const matchesSearch = !query || name.includes(query);
     const matchesStatus =
@@ -20,8 +19,7 @@ function filterListings() {
       status === 'inactive' ? active === '0' :
       true;
 
-    row.style.display =
-      matchesSearch && matchesStatus ? '' : 'none';
+    row.style.display = matchesSearch && matchesStatus ? '' : 'none';
   });
 }
 
@@ -32,35 +30,20 @@ function openModal(id) {
 
 // ── Open edit modal — pre-fill form ──
 function editListing(listing) {
-  document.getElementById('modalTitle').textContent =
-    'Edit Listing';
-  document.getElementById('editHostelId').value =
-    listing.hostelId;
-  document.getElementById('lName').value =
-    listing.hostelName;
-  document.getElementById('lNeighbourhood').value =
-    listing.neighbourhood;
-  document.getElementById('lAddress').value =
-    listing.physicalAddress;
-  document.getElementById('lDesc').value =
-    listing.description;
-  document.getElementById('lPriceMin').value =
-    listing.priceMin;
-  document.getElementById('lPriceMax').value =
-    listing.priceMax;
-  document.getElementById('lRoomType').value =
-    listing.roomType;
-  document.getElementById('lRooms').value =
-    listing.roomsAvailable;
-  document.getElementById('lLandlordName').value =
-    listing.landlordName;
-  document.getElementById('lLandlordPhone').value =
-    listing.landlordPhone;
+  document.getElementById('modalTitle').textContent = 'Edit Listing';
+  document.getElementById('editHostelId').value    = listing.hostelId;
+  document.getElementById('lName').value           = listing.hostelName;
+  document.getElementById('lPhysicalAddress').value  = listing.physicalAddress;
+  document.getElementById('lAddress').value        = listing.physicalAddress;
+  document.getElementById('lDesc').value           = listing.description;
+  document.getElementById('lPriceMin').value       = listing.priceMin;
+  document.getElementById('lPriceMax').value       = listing.priceMax;
+  document.getElementById('lRoomType').value       = listing.roomType;
+  document.getElementById('lRooms').value          = listing.roomsAvailable;
+  document.getElementById('lLandlordName').value   = listing.landlordName;
+  document.getElementById('lLandlordPhone').value  = listing.landlordPhone;
 
-  // Tick the right amenity checkboxes
-  const amenities = Array.isArray(listing.amenities)
-    ? listing.amenities
-    : [];
+  const amenities = Array.isArray(listing.amenities) ? listing.amenities : [];
   document.querySelectorAll('.modal-amenity').forEach(cb => {
     cb.checked = amenities.includes(cb.value);
   });
@@ -69,24 +52,16 @@ function editListing(listing) {
 }
 
 // ── Reset modal to add mode ──
-document.getElementById('listingModal')
-  ?.addEventListener('click', function(e) {
-  if (e.target === this) closeModal('listingModal');
-});
-
-// Override the + Add New Listing button to reset form
 document.querySelector('[onclick="openModal(\'listingModal\')"]')
   ?.addEventListener('click', () => {
-  document.getElementById('modalTitle').textContent =
-    'Add New Listing';
+  document.getElementById('modalTitle').textContent = 'Add New Listing';
   document.getElementById('listingForm')?.reset();
   document.getElementById('editHostelId').value = '';
-  document.querySelectorAll('.modal-amenity')
-    .forEach(cb => cb.checked = false);
+  document.querySelectorAll('.modal-amenity').forEach(cb => cb.checked = false);
   clearAllErrors();
 });
 
-// ── Form validation ──
+// ── Form validation helpers ──
 function showError(id, msg) {
   const el  = document.getElementById('err-' + id);
   const inp = document.getElementById(id);
@@ -102,65 +77,92 @@ function clearError(id) {
 }
 
 function clearAllErrors() {
-  document.querySelectorAll('.form-error')
-    .forEach(el => el.textContent = '');
-  document.querySelectorAll('.is-error')
-    .forEach(el => el.classList.remove('is-error'));
+  document.querySelectorAll('.form-error').forEach(el => el.textContent = '');
+  document.querySelectorAll('.is-error').forEach(el => el.classList.remove('is-error'));
 }
 
-function submitListingForm() {
+// ── Submit listing form → real API ──
+async function submitListingForm() {
   clearAllErrors();
   let valid = true;
 
   const required = [
-    { id: 'lName',          msg: 'Hostel name is required.' },
-    { id: 'lNeighbourhood', msg: 'Neighbourhood is required.' },
-    { id: 'lAddress',       msg: 'Physical address is required.' },
-    { id: 'lDesc',          msg: 'Description is required.' },
-    { id: 'lPriceMin',      msg: 'Minimum price is required.' },
-    { id: 'lPriceMax',      msg: 'Maximum price is required.' },
-    { id: 'lRoomType',      msg: 'Room type is required.' },
-    { id: 'lRooms',         msg: 'Rooms available is required.' },
-    { id: 'lLandlordName',  msg: 'Landlord name is required.' },
-    { id: 'lLandlordPhone', msg: 'Landlord phone is required.' },
+    { id: 'lName',          msg: 'Hostel name is required.'       },
+    { id: 'lPhysicalAddress', msg: 'Physical address is required.'     },
+    { id: 'lAddress',       msg: 'Physical address is required.'  },
+    { id: 'lDesc',          msg: 'Description is required.'       },
+    { id: 'lPriceMin',      msg: 'Minimum price is required.'     },
+    { id: 'lPriceMax',      msg: 'Maximum price is required.'     },
+    { id: 'lRoomType',      msg: 'Room type is required.'         },
+    { id: 'lRooms',         msg: 'Rooms available is required.'   },
+    { id: 'lLandlordName',  msg: 'Landlord name is required.'     },
+    { id: 'lLandlordPhone', msg: 'Landlord phone is required.'    },
   ];
 
   required.forEach(({ id, msg }) => {
-    const el = document.getElementById(id);
-    if (!el?.value.trim()) {
+    if (!document.getElementById(id)?.value.trim()) {
       showError(id, msg);
       valid = false;
     }
   });
 
-  // Price range check
-  const min = parseFloat(
-    document.getElementById('lPriceMin').value
-  );
-  const max = parseFloat(
-    document.getElementById('lPriceMax').value
-  );
+  const min = parseFloat(document.getElementById('lPriceMin').value);
+  const max = parseFloat(document.getElementById('lPriceMax').value);
   if (min && max && max < min) {
-    showError('lPriceMax',
-      'Max price must be greater than min price.');
+    showError('lPriceMax', 'Max price must be greater than min price.');
     valid = false;
   }
 
   if (!valid) return;
 
-  // ── Backend hook ──
-  // When Michelle's API is ready:
-  // document.getElementById('listingForm').submit();
-  //
-  // For now — show success toast and close modal
-  const isEdit = !!document.getElementById('editHostelId').value;
-  closeModal('listingModal');
-  showToast(
-    isEdit
-      ? 'Listing updated successfully.'
-      : 'New listing added and is now live.',
-    'success'
-  );
+  const hostelId = document.getElementById('editHostelId').value;
+  const isEdit   = !!hostelId;
+
+  const amenities = Array.from(
+    document.querySelectorAll('.modal-amenity:checked')
+  ).map(cb => cb.value);
+
+  const payload = {
+    hostelName:      document.getElementById('lName').value.trim(),
+    location:        document.getElementById('lPhysicalAddress').value,
+    physicalAddress: document.getElementById('lAddress').value.trim(),
+    description:     document.getElementById('lDesc').value.trim(),
+    priceMin:        parseFloat(document.getElementById('lPriceMin').value),
+    priceMax:        parseFloat(document.getElementById('lPriceMax').value),
+    roomType:        document.getElementById('lRoomType').value,
+    roomsAvailable:  parseInt(document.getElementById('lRooms').value, 10),
+    landlordName:    document.getElementById('lLandlordName').value.trim(),
+    landlordPhone:   document.getElementById('lLandlordPhone').value.trim(),
+    amenities,
+  };
+
+  if (isEdit) payload.hostelId = parseInt(hostelId, 10);
+
+  const url    = '/SU-Housing/api/listings.php' + (isEdit ? `?id=${hostelId}` : '');
+  const method = isEdit ? 'PUT' : 'POST';
+
+  try {
+    const res  = await fetch(url, {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+
+    if (res.ok) {
+      closeModal('listingModal');
+      showToast(
+        isEdit ? 'Listing updated successfully.' : 'New listing added and is now live.',
+        'success'
+      );
+      // Reload page so the table reflects the DB change
+      setTimeout(() => location.reload(), 1200);
+    } else {
+      showToast(data.error || 'Failed to save listing.', 'error');
+    }
+  } catch (err) {
+    showToast('Network error. Please try again.', 'error');
+  }
 }
 
 // ── Confirm remove ──
@@ -168,26 +170,22 @@ let pendingRemoveId = null;
 
 function confirmRemove(id, name) {
   pendingRemoveId = id;
-  document.getElementById('confirmTitle').textContent =
-    'Remove Listing';
+  document.getElementById('confirmTitle').textContent   = 'Remove Listing';
   document.getElementById('confirmMessage').textContent =
-    `Are you sure you want to remove "${name}" from the
-    live database? Students will no longer be able to
-    see this listing.`;
+    `Are you sure you want to remove "${name}" from the live database?
+     Students will no longer be able to see this listing.`;
   const btn = document.getElementById('confirmActionBtn');
-  btn.textContent  = 'Confirm Remove';
-  btn.className    = 'btn btn-danger';
-  btn.onclick      = executeRemove;
+  btn.textContent = 'Confirm Remove';
+  btn.className   = 'btn btn-danger';
+  btn.onclick     = executeRemove;
   openModal('confirmModal');
 }
 
 function confirmRestore(id, name) {
   pendingRemoveId = id;
-  document.getElementById('confirmTitle').textContent =
-    'Restore Listing';
+  document.getElementById('confirmTitle').textContent   = 'Restore Listing';
   document.getElementById('confirmMessage').textContent =
-    `Restore "${name}"? It will become visible to
-    students immediately.`;
+    `Restore "${name}"? It will become visible to students immediately.`;
   const btn = document.getElementById('confirmActionBtn');
   btn.textContent = 'Confirm Restore';
   btn.className   = 'btn btn-success';
@@ -195,62 +193,51 @@ function confirmRestore(id, name) {
   openModal('confirmModal');
 }
 
-function executeRemove() {
-  // ── Backend hook ──
-  // fetch(`/SU-Housing/api/listings/destroy.php?id=${pendingRemoveId}`, {
-  //   method: 'POST',
-  //   body: `csrf_token=${CSRF_TOKEN}`
-  // }).then(...);
-
-  closeModal('confirmModal');
-  showToast('Listing removed from live database.', 'default');
-
-  // Update row status badge in the table (frontend simulation)
-  updateRowStatus(pendingRemoveId, false);
-}
-
-function executeRestore() {
-  closeModal('confirmModal');
-  showToast('Listing restored and is now live.', 'success');
-  updateRowStatus(pendingRemoveId, true);
-}
-
-function updateRowStatus(id, isActive) {
-  // Find the row by searching cells — works with mock data
-  document.querySelectorAll('.listing-row').forEach(row => {
-    const editBtn = row.querySelector('button');
-    if (!editBtn) return;
-
-    // Update the status badge
-    const badge = row.querySelector('.badge');
-    if (badge) {
-      badge.className  = isActive
-        ? 'badge badge-green'
-        : 'badge badge-gray';
-      badge.textContent = isActive ? '● Active' : '● Removed';
-    }
-
-    // Swap remove/restore button
-    const actionDiv = row.querySelector(
-      'div[style*="display:flex"]'
+async function executeRemove() {
+  try {
+    const res  = await fetch(
+      `/SU-Housing/api/listings.php?id=${pendingRemoveId}`,
+      { method: 'DELETE' }
     );
-    if (actionDiv) {
-      const removeBtn = actionDiv.querySelector('.btn-danger');
-      const restoreBtn = actionDiv.querySelector('.btn-success');
-      if (isActive && restoreBtn) {
-        restoreBtn.className = 'btn btn-danger btn-sm';
-        restoreBtn.textContent = 'Remove';
-      }
-      if (!isActive && removeBtn) {
-        removeBtn.className = 'btn btn-success btn-sm';
-        removeBtn.textContent = 'Restore';
-      }
+    const data = await res.json();
+
+    if (res.ok) {
+      closeModal('confirmModal');
+      showToast('Listing removed from live database.', 'default');
+      setTimeout(() => location.reload(), 1200);
+    } else {
+      closeModal('confirmModal');
+      showToast(data.error || 'Failed to remove listing.', 'error');
     }
-  });
+  } catch (err) {
+    closeModal('confirmModal');
+    showToast('Network error. Please try again.', 'error');
+  }
 }
 
-// ── Add CSS for amenities checkboxes in modal ──
-// (already defined in components.css — just needs grid layout)
+async function executeRestore() {
+  try {
+    const res  = await fetch(
+      `/SU-Housing/api/listings.php?id=${pendingRemoveId}&action=restore`,
+      { method: 'PATCH' }
+    );
+    const data = await res.json();
+
+    if (res.ok) {
+      closeModal('confirmModal');
+      showToast('Listing restored and is now live.', 'success');
+      setTimeout(() => location.reload(), 1200);
+    } else {
+      closeModal('confirmModal');
+      showToast(data.error || 'Failed to restore listing.', 'error');
+    }
+  } catch (err) {
+    closeModal('confirmModal');
+    showToast('Network error. Please try again.', 'error');
+  }
+}
+
+// ── Amenity checkbox grid style ──
 const style = document.createElement('style');
 style.textContent = `
   .amenities-check-grid {
