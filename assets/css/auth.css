@@ -289,3 +289,45 @@
 @media (max-width: 480px) {
   .auth-stats { grid-template-columns: 1fr; }
 }
+/* ════════════════════════════════
+   ROLE TOGGLE
+════════════════════════════════ */
+.role-toggle {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  background: var(--gray-100);
+  border-radius: var(--radius);
+  margin-bottom: 24px;
+}
+
+.role-toggle-btn {
+  flex: 1;
+  padding: 10px 16px;
+  border-radius: calc(var(--radius) - 2px);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--gray-600);
+  cursor: pointer;
+  transition: all var(--transition);
+  text-align: center;
+  border: none;
+  background: none;
+  font-family: var(--font-body);
+}
+
+.role-toggle-btn:hover {
+  background: var(--white);
+  color: var(--navy);
+}
+
+.role-toggle-btn.active {
+  background: var(--white);
+  color: var(--navy);
+  font-weight: 600;
+  box-shadow: var(--shadow-sm);
+}
+
+#adminToggle.active {
+  color: var(--navy);
+}
