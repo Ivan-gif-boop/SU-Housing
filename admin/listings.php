@@ -47,7 +47,7 @@ include __DIR__ . '/../includes/sidebar.php';
       <h1 class="page-title">Manage Listings</h1>
       <p class="page-subtitle">
         Create, update, and remove verified hostel listings.
-        Changes are live immediately (FR-03).
+        Changes are live immediately and visible to students. Removed listings can be restored later.
       </p>
     </div>
     <div class="page-actions">
