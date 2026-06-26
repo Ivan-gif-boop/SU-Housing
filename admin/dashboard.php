@@ -1,36 +1,34 @@
 <?php
-// admin/dashboard.php
-// FR-12: sentiment analytics chart
-// FR-13: live stats dashboard
-
 session_start();
 
-require_once __DIR__ . '/../includes/auth.php';
-requireAdmin();
+if (empty($_SESSION['adminId'])) {
+    header('Location: /SU-Housing/login.php');
+    exit;
+}
 
 require_once __DIR__ . '/../config/db.php';
 $db = getDB();
 
 $userName = $_SESSION['fullName'] ?? 'Administrator';
 
-// ── Summary stats ──
-$activeListings = (int) $db->query(
+// Summary stats
+$activeListings = (int)$db->query(
     'SELECT COUNT(*) FROM hostel_listings WHERE isActive = 1'
 )->fetchColumn();
 
-$pendingCount = (int) $db->query(
+$pendingCount = (int)$db->query(
     'SELECT COUNT(*) FROM feedback WHERE classification IS NULL'
 )->fetchColumn();
 
-$studentCount = (int) $db->query(
+$studentCount = (int)$db->query(
     'SELECT COUNT(*) FROM students'
 )->fetchColumn();
 
-$totalFeedback = (int) $db->query(
+$totalFeedback = (int)$db->query(
     'SELECT COUNT(*) FROM feedback'
 )->fetchColumn();
 
-// ── All active listings ──
+// All active listings
 $listings = $db->query(
     'SELECT hostelId, hostelName, physicalAddress,
             priceMin, priceMax, roomType, roomsAvailable, isActive, createdAt
@@ -39,7 +37,7 @@ $listings = $db->query(
      ORDER BY createdAt DESC'
 )->fetchAll();
 
-// ── Per-hostel feedback analytics for chart (FR-12) ──
+// Per-hostel feedback analytics for chart (FR-12)
 $analyticsStmt = $db->query(
     'SELECT
         h.hostelId,
@@ -47,7 +45,7 @@ $analyticsStmt = $db->query(
         COUNT(f.feedbackId) AS totalFeedback,
         SUM(CASE WHEN f.classification = "positive" THEN 1 ELSE 0 END) AS positiveCount,
         SUM(CASE WHEN f.classification = "negative" THEN 1 ELSE 0 END) AS negativeCount,
-        SUM(CASE WHEN f.classification IS NULL     THEN 1 ELSE 0 END) AS pendingCount
+        SUM(CASE WHEN f.classification IS NULL THEN 1 ELSE 0 END) AS pendingCount
      FROM hostel_listings h
      LEFT JOIN feedback f ON h.hostelId = f.hostelId
      WHERE h.isActive = 1
@@ -56,10 +54,9 @@ $analyticsStmt = $db->query(
 );
 $analytics = $analyticsStmt->fetchAll();
 
-// Add overallSentiment label per hostel
 foreach ($analytics as &$row) {
-    $pos = (int) $row['positiveCount'];
-    $neg = (int) $row['negativeCount'];
+    $pos = (int)$row['positiveCount'];
+    $neg = (int)$row['negativeCount'];
     if ($pos + $neg === 0) {
         $row['overallSentiment'] = 'no_feedback';
     } elseif ($pos >= $neg) {
@@ -70,45 +67,32 @@ foreach ($analytics as &$row) {
 }
 unset($row);
 
-// ── Unreviewed (pending) feedback for admin table ──
+// Unreviewed feedback
 $unreviewedStmt = $db->prepare(
-    'SELECT
-        f.feedbackId,
-        f.submissionText,
-        f.submittedAt,
-        f.hostelAccuracy,
-        f.propertyCondition,
-        f.issuesEncountered,
-        s.admissionNumber,
-        s.fullName,
-        h.hostelName,
-        h.hostelId
+    'SELECT f.feedbackId, f.submissionText, f.submittedAt,
+            f.suggestedClassification,
+            s.admissionNumber, s.fullName,
+            h.hostelName, h.hostelId
      FROM feedback f
-     JOIN students        s ON f.studentId = s.studentId
-     JOIN hostel_listings h ON f.hostelId  = h.hostelId
+     JOIN students s ON f.studentId = s.studentId
+     JOIN hostel_listings h ON f.hostelId = h.hostelId
      WHERE f.classification IS NULL
      ORDER BY f.submittedAt ASC'
 );
 $unreviewedStmt->execute();
 $unreviewedFeedback = $unreviewedStmt->fetchAll();
 
-// ── Recent activity — last 5 submissions ──
+// Recent activity
 $recentActivity = $db->query(
-    'SELECT
-        f.feedbackId,
-        f.submissionText,
-        f.submittedAt,
-        f.classification,
-        s.admissionNumber,
-        h.hostelName
+    'SELECT f.feedbackId, f.submissionText, f.submittedAt,
+            f.classification, s.admissionNumber, h.hostelName
      FROM feedback f
-     JOIN students        s ON f.studentId = s.studentId
-     JOIN hostel_listings h ON f.hostelId  = h.hostelId
+     JOIN students s ON f.studentId = s.studentId
+     JOIN hostel_listings h ON f.hostelId = h.hostelId
      ORDER BY f.submittedAt DESC
      LIMIT 5'
 )->fetchAll();
 
-// ── Page meta ──
 $pageTitle  = 'Dashboard';
 $activePage = 'dashboard';
 $userRole   = 'admin';
@@ -117,18 +101,13 @@ include __DIR__ . '/../includes/header.php';
 include __DIR__ . '/../includes/sidebar.php';
 ?>
 
-  <!-- ── Page header ── -->
   <div class="page-header">
     <div class="page-title-group">
       <div class="page-breadcrumb">Admin</div>
       <h1 class="page-title">
-        Welcome, <?php echo htmlspecialchars(
-          explode(' ', $userName)[0]
-        ); ?> 👋
+        Welcome, <?php echo htmlspecialchars(explode(' ', $userName)[0]); ?> 👋
       </h1>
-      <p class="page-subtitle">
-        SU-Housing administration dashboard.
-      </p>
+      <p class="page-subtitle">SU-Housing administration dashboard.</p>
     </div>
     <div class="page-actions">
       <a href="/SU-Housing/admin/listings.php" class="btn btn-primary">
@@ -139,9 +118,8 @@ include __DIR__ . '/../includes/sidebar.php';
 
   <div class="page-body">
 
-    <!-- ── Stats row ── -->
+    <!-- Stats row -->
     <div class="stats-grid">
-
       <div class="stat-card animate-fade-up delay-1">
         <div class="stat-icon amber">🏠</div>
         <div>
@@ -149,7 +127,6 @@ include __DIR__ . '/../includes/sidebar.php';
           <div class="stat-label">Active Listings</div>
         </div>
       </div>
-
       <div class="stat-card animate-fade-up delay-2">
         <div class="stat-icon red">⏳</div>
         <div>
@@ -157,7 +134,6 @@ include __DIR__ . '/../includes/sidebar.php';
           <div class="stat-label">Pending Feedback</div>
         </div>
       </div>
-
       <div class="stat-card animate-fade-up delay-3">
         <div class="stat-icon blue">🎓</div>
         <div>
@@ -165,7 +141,6 @@ include __DIR__ . '/../includes/sidebar.php';
           <div class="stat-label">Registered Students</div>
         </div>
       </div>
-
       <div class="stat-card animate-fade-up delay-4">
         <div class="stat-icon green">📋</div>
         <div>
@@ -173,16 +148,13 @@ include __DIR__ . '/../includes/sidebar.php';
           <div class="stat-label">Total Feedback</div>
         </div>
       </div>
-
     </div>
 
-    <!-- ── Sentiment Analytics Chart (FR-12) ── -->
+    <!-- Sentiment Analytics Chart (FR-12) -->
     <div class="section-header">
       <div>
         <h2 class="section-title">Feedback Sentiment by Hostel</h2>
-        <p class="section-subtitle">
-          Positive vs negative classifications per listing
-        </p>
+        <p class="section-subtitle">Positive vs negative classifications per listing</p>
       </div>
     </div>
 
@@ -190,8 +162,7 @@ include __DIR__ . '/../includes/sidebar.php';
       <div class="card-body" style="height:320px; position:relative;">
         <?php if (empty($analytics) || array_sum(array_column($analytics, 'totalFeedback')) === 0): ?>
           <div style="display:flex; align-items:center; justify-content:center;
-                      height:100%; flex-direction:column; gap:8px;
-                      color:var(--gray-400);">
+                      height:100%; flex-direction:column; gap:8px; color:var(--gray-400);">
             <span style="font-size:36px;">📊</span>
             <p style="font-size:14px;">No feedback submitted yet.</p>
           </div>
@@ -201,16 +172,15 @@ include __DIR__ . '/../includes/sidebar.php';
       </div>
     </div>
 
-    <!-- Pass analytics data to JS (FR-12) -->
     <script>
       window.SENTIMENT_DATA = <?php echo json_encode(array_map(fn($r) => [
           'hostelName' => $r['hostelName'],
-          'positive'   => (int) $r['positiveCount'],
-          'negative'   => (int) $r['negativeCount'],
+          'positive'   => (int)$r['positiveCount'],
+          'negative'   => (int)$r['negativeCount'],
       ], $analytics)); ?>;
     </script>
 
-    <!-- ── Pending feedback table (FR-13) ── -->
+    <!-- Pending feedback (FR-13) -->
     <?php if (!empty($unreviewedFeedback)): ?>
       <div class="section-header">
         <div>
@@ -222,20 +192,49 @@ include __DIR__ . '/../includes/sidebar.php';
             Feedback awaiting your positive / negative classification
           </p>
         </div>
-        <a href="/SU-Housing/admin/feedback.php" class="btn btn-ghost">
-          View all →
-        </a>
+        <a href="/SU-Housing/admin/feedback.php" class="btn btn-ghost">View all →</a>
       </div>
 
-      <?php foreach ($unreviewedFeedback as $fb):
-        $isPending = true;
-        $fb['sentiment'] = null; // ensure card renders pending state
-      ?>
-        <?php include __DIR__ . '/../includes/feedback_card.php'; ?>
+      <?php foreach ($unreviewedFeedback as $fb): ?>
+        <div class="feedback-classify-card" id="fb-<?php echo $fb['feedbackId']; ?>">
+          <div class="fbc-header">
+            <div>
+              <div class="fbc-hostel"><?php echo htmlspecialchars($fb['hostelName']); ?></div>
+              <div class="fbc-meta">
+                <?php echo htmlspecialchars($fb['fullName']); ?>
+                · Admission: <?php echo htmlspecialchars($fb['admissionNumber']); ?>
+                · <?php echo date('j M Y', strtotime($fb['submittedAt'])); ?>
+              </div>
+            </div>
+            <div style="display:flex; flex-direction:column; align-items:flex-end; gap:4px;">
+              <span class="badge badge-amber">Pending</span>
+              <?php if (!empty($fb['suggestedClassification'])): ?>
+                <span class="badge <?php echo $fb['suggestedClassification'] === 'positive'
+                    ? 'badge-green' : ($fb['suggestedClassification'] === 'negative'
+                    ? 'badge-red' : 'badge-gray'); ?>" style="font-size:11px;">
+                  AI: <?php echo ucfirst($fb['suggestedClassification']); ?>
+                </span>
+              <?php endif; ?>
+            </div>
+          </div>
+          <p class="fbc-text">
+            "<?php echo nl2br(htmlspecialchars($fb['submissionText'])); ?>"
+          </p>
+          <div class="fbc-actions">
+            <button class="btn btn-success btn-sm"
+              onclick="classifyFeedback(<?php echo $fb['feedbackId']; ?>, 'positive')">
+              ✓ Positive
+            </button>
+            <button class="btn btn-danger btn-sm"
+              onclick="classifyFeedback(<?php echo $fb['feedbackId']; ?>, 'negative')">
+              ✗ Negative
+            </button>
+          </div>
+        </div>
       <?php endforeach; ?>
     <?php endif; ?>
 
-    <!-- ── Recent activity ── -->
+    <!-- Recent activity -->
     <div class="section-header" style="margin-top:32px;">
       <div>
         <h2 class="section-title">Recent Activity</h2>
@@ -249,7 +248,6 @@ include __DIR__ . '/../includes/sidebar.php';
           <div class="empty-state" style="padding:40px;">
             <div class="empty-icon">📋</div>
             <h3>No activity yet</h3>
-            <p>Recent feedback submissions will appear here.</p>
           </div>
         <?php else: ?>
           <table>
@@ -267,8 +265,7 @@ include __DIR__ . '/../includes/sidebar.php';
                   <td><?php echo htmlspecialchars($a['admissionNumber']); ?></td>
                   <td><?php echo htmlspecialchars($a['hostelName']); ?></td>
                   <td style="font-size:13px; color:var(--gray-500);">
-                    <?php echo date('d M Y, H:i',
-                      strtotime($a['submittedAt'])); ?>
+                    <?php echo date('d M Y, H:i', strtotime($a['submittedAt'])); ?>
                   </td>
                   <td>
                     <?php if ($a['classification'] === 'positive'): ?>
@@ -287,17 +284,13 @@ include __DIR__ . '/../includes/sidebar.php';
       </div>
     </div>
 
-    <!-- ── Listings overview ── -->
+    <!-- Active listings -->
     <div class="section-header" style="margin-top:32px;">
       <div>
         <h2 class="section-title">Active Listings</h2>
-        <p class="section-subtitle">
-          <?php echo $activeListings; ?> hostels currently live
-        </p>
+        <p class="section-subtitle"><?php echo $activeListings; ?> hostels currently live</p>
       </div>
-      <a href="/SU-Housing/admin/listings.php" class="btn btn-ghost">
-        Manage →
-      </a>
+      <a href="/SU-Housing/admin/listings.php" class="btn btn-ghost">Manage →</a>
     </div>
 
     <div class="card">
@@ -306,19 +299,19 @@ include __DIR__ . '/../includes/sidebar.php';
           <div class="empty-state" style="padding:40px;">
             <div class="empty-icon">🏠</div>
             <h3>No active listings</h3>
-            <p>
-              <a href="/SU-Housing/admin/listings.php"
-                 class="btn btn-primary mt-16">
-                + Add First Listing
-              </a>
-            </p>
           </div>
         <?php else: ?>
+          <?php
+          $sentimentMap = [];
+          foreach ($analytics as $a) {
+              $sentimentMap[$a['hostelId']] = $a['overallSentiment'];
+          }
+          ?>
           <table>
             <thead>
               <tr>
                 <th>Hostel Name</th>
-                <th>Physical Address</th>
+                <th>Address</th>
                 <th>Price Range</th>
                 <th>Room Type</th>
                 <th>Rooms</th>
@@ -326,22 +319,13 @@ include __DIR__ . '/../includes/sidebar.php';
               </tr>
             </thead>
             <tbody>
-              <?php
-              // Build a sentiment map from analytics
-              $sentimentMap = [];
-              foreach ($analytics as $a) {
-                  $sentimentMap[$a['hostelId']] = $a['overallSentiment'];
-              }
-              foreach ($listings as $l):
-                  $sentiment = $sentimentMap[$l['hostelId']] ?? 'no_feedback';
+              <?php foreach ($listings as $l):
+                $sentiment = $sentimentMap[$l['hostelId']] ?? 'no_feedback';
               ?>
                 <tr>
                   <td><strong><?php echo htmlspecialchars($l['hostelName']); ?></strong></td>
                   <td><?php echo htmlspecialchars($l['physicalAddress']); ?></td>
-                  <td>
-                    KES <?php echo number_format($l['priceMin']); ?>
-                    – <?php echo number_format($l['priceMax']); ?>
-                  </td>
+                  <td>KES <?php echo number_format($l['priceMin']); ?> – <?php echo number_format($l['priceMax']); ?></td>
                   <td><?php echo ucfirst($l['roomType']); ?></td>
                   <td><?php echo $l['roomsAvailable']; ?></td>
                   <td>
@@ -361,7 +345,7 @@ include __DIR__ . '/../includes/sidebar.php';
       </div>
     </div>
 
-  </div><!-- end page-body -->
+  </div>
 
 <?php
 $extraScripts = [
@@ -370,3 +354,33 @@ $extraScripts = [
 ];
 include __DIR__ . '/../includes/footer.php';
 ?>
+
+<script>
+async function classifyFeedback(feedbackId, classification) {
+    try {
+        const response = await fetch(
+            `/SU-Housing/api/admin/feedback.php?id=${feedbackId}`, {
+            method: 'PATCH',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ classification })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            const card = document.getElementById('fb-' + feedbackId);
+            if (card) {
+                card.style.opacity    = '0';
+                card.style.transition = 'opacity 0.3s';
+                setTimeout(() => { card.remove(); window.location.reload(); }, 300);
+            }
+        } else {
+            alert(data.error || 'Failed to classify feedback.');
+        }
+    } catch (err) {
+        alert('Network error. Please try again.');
+        console.error('Classify error:', err);
+    }
+}
+</script>
