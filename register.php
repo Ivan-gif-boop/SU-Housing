@@ -92,7 +92,7 @@ $programmes = [
         Students only. You will need your admission number.
       </p>
 
-      <!-- PHP messages -->
+      <!-- PHP messages (server-rendered fallback, rarely used now that JS handles it) -->
       <?php if ($error): ?>
         <div class="auth-alert error">
           ⚠️ <?php echo htmlspecialchars($error); ?>
@@ -104,15 +104,17 @@ $programmes = [
         </div>
       <?php endif; ?>
 
-      <!--
-        Backend:
-        - Change action to "register.php" method="POST"
-        - Partner validates: admission number format (6 digits),
-          uniqueness check against users table, bcrypt password hash
-        - On success: INSERT into users, redirect to preference_profile.php
-        - On failure: set $error and re-render page
-      -->
-      <form action="/SU-Housing/api/auth/register.php" method="POST">
+      <!-- API error/success alert (JS-driven) -->
+      <div class="auth-alert error"
+           id="registerError"
+           style="display:none; margin-bottom:16px;">
+      </div>
+      <div class="auth-alert success"
+           id="registerSuccess"
+           style="display:none; margin-bottom:16px;">
+      </div>
+
+      <form id="registerForm" novalidate>
 
         <!-- Full Name -->
         <div class="form-group">
@@ -208,7 +210,7 @@ $programmes = [
           <div class="form-error" id="err-confirm_password"></div>
         </div>
 
-        <button type="submit" class="btn btn-primary btn-full btn-lg">
+        <button type="submit" class="btn btn-primary btn-full btn-lg" id="registerSubmitBtn">
           Create Account →
         </button>
 
@@ -251,7 +253,16 @@ function clearError(fieldId) {
     if (el) el.addEventListener('input', () => clearError(id));
   });
 
-form.addEventListener('submit', function(e) {
+form.addEventListener('submit', async function(e) {
+  e.preventDefault();
+
+  const errorEl   = document.getElementById('registerError');
+  const successEl = document.getElementById('registerSuccess');
+  const btn       = document.getElementById('registerSubmitBtn');
+
+  errorEl.style.display   = 'none';
+  successEl.style.display = 'none';
+
   let valid = true;
 
   // Full name
@@ -292,7 +303,47 @@ form.addEventListener('submit', function(e) {
     valid = false;
   }
 
-  if (!valid) e.preventDefault();
+  if (!valid) return;
+
+  btn.disabled    = true;
+  btn.textContent = 'Creating account…';
+
+  try {
+    // NOTE: keys below are camelCase to match api/auth/register.php exactly
+    // (fullName, admissionNumber, confirmPassword) — do not change to snake_case.
+    const response = await fetch('/SU-Housing/api/auth/register.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        fullName: name,
+        admissionNumber: admNo,
+        programme: prog,
+        password: pw,
+        confirmPassword: cpw,
+      }),
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      successEl.textContent   = data.message || 'Account created. Redirecting…';
+      successEl.style.display = 'flex';
+      setTimeout(() => {
+        window.location.href = '/SU-Housing/student/dashboard.php';
+      }, 1200);
+    } else {
+      errorEl.textContent   = data.error || 'Registration failed.';
+      errorEl.style.display = 'flex';
+      btn.disabled          = false;
+      btn.textContent       = 'Create Account →';
+    }
+
+  } catch (err) {
+    errorEl.textContent   = 'Connection error. Please try again.';
+    errorEl.style.display = 'flex';
+    btn.disabled          = false;
+    btn.textContent       = 'Create Account →';
+  }
 });
 </script>
 

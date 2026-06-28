@@ -1,64 +1,63 @@
 <?php
 // student/profile.php
 
-// ─────────────────────────────────────────
-// BACKEND HOOK ZONE — Michelle fills this in
-// ─────────────────────────────────────────
-// require_once __DIR__ . '/../includes/auth_check.php';
-// requireAuth('student');
-// $userName = $_SESSION['user_name'];
-//
-// require_once __DIR__ . '/../includes/db.php';
-// $db = getDB();
-//
-// $stmt = $db->prepare(
-//   'SELECT fullName, admissionNumber, programme
-//    FROM users WHERE userId = ?'
-// );
-// $stmt->execute([$_SESSION['user_id']]);
-// $student = $stmt->fetch();
-//
-// // Feedback count
-// $stmt = $db->prepare(
-//   'SELECT COUNT(*) FROM feedback WHERE studentId = ?'
-// );
-// $stmt->execute([$_SESSION['user_id']]);
-// $feedbackCount = $stmt->fetchColumn();
-//
-// // Has preference profile?
-// $stmt = $db->prepare(
-//   'SELECT profileId FROM student_preference_profiles
-//    WHERE userId = ?'
-// );
-// $stmt->execute([$_SESSION['user_id']]);
-// $hasProfile = (bool) $stmt->fetch();
-//
-// $success = null;
-// $error   = null;
-// if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-//   // Partner handles update logic here
-// }
-// ─────────────────────────────────────────
+session_start();
 
-// Frontend defaults
+// ── Auth guard ──
+require_once __DIR__ . '/../includes/auth.php';
+requireStudent();
+
+require_once __DIR__ . '/../config/db.php';
+$db = getDB();
+
+$studentId = currentStudentId();
+
+// ── Real data from DB ──
+
+$stmt = $db->prepare(
+    'SELECT fullName, admissionNumber, programme
+     FROM students WHERE studentId = ?'
+);
+$stmt->execute([$studentId]);
+$student = $stmt->fetch();
+
+// Fallback in case session points to a student that no longer exists
+if (!$student) {
+    $student = [
+        'fullName'        => $_SESSION['fullName'] ?? 'Student',
+        'admissionNumber' => '',
+        'programme'       => '',
+    ];
+}
+
+// Feedback count
+$stmt = $db->prepare(
+    'SELECT COUNT(*) FROM feedback WHERE studentId = ?'
+);
+$stmt->execute([$studentId]);
+$feedbackCount = (int) $stmt->fetchColumn();
+
+// Has preference profile?
+$stmt = $db->prepare(
+    'SELECT profileId FROM student_preference_profiles
+     WHERE studentId = ?'
+);
+$stmt->execute([$studentId]);
+$hasProfile = (bool) $stmt->fetch();
+
+$success = null;
+$error   = null;
+
+// NOTE: Save Changes / Update Password forms below still post to "#"
+// (no real action wired up yet). That's a separate, follow-up fix —
+// this pass only corrects the page from showing hardcoded/wrong data.
+
+// Frontend page meta
 $pageTitle  = 'My Profile';
 $activePage = 'profile';
 $userRole   = 'student';
-$userName   = 'Ivan Wachira';
 
-$student = [
-  'fullName'        => 'Ivan Wachira',
-  'admissionNumber' => '176830',
-  'programme'       => 'Bachelor of Science in Informatics
-    and Computer Science',
-];
-
-$feedbackCount = 2;
-$hasProfile    = true;
-$success       = null;
-$error         = null;
-
-$avatarLetter  = strtoupper(substr($student['fullName'], 0, 1));
+$avatarLetter = strtoupper(substr($student['fullName'], 0, 1));
 
 $programmes = [
   'Bachelor of Business Information Technology',
@@ -193,7 +192,7 @@ include __DIR__ . '/../includes/sidebar.php';
           </div>
           <div class="card-body">
             <!--
-              Backend hook:
+              Backend hook (still pending — separate fix):
               action="/SU-Housing/api/auth/update_profile.php"
               method="POST"
               Michelle adds csrfField() here
@@ -271,7 +270,7 @@ include __DIR__ . '/../includes/sidebar.php';
           </div>
           <div class="card-body">
             <!--
-              Backend hook:
+              Backend hook (still pending — separate fix):
               action="/SU-Housing/api/auth/change_password.php"
               method="POST"
               Michelle adds csrfField() here
