@@ -1,4 +1,6 @@
 <?php
+// config/db.php
+
 define('DB_HOST', 'localhost');
 define('DB_NAME', 'suhousing');
 define('DB_USER', 'root');
@@ -16,8 +18,11 @@ function getDB(): PDO {
             ];
             $pdo = new PDO($dsn, DB_USER, DB_PASS, $options);
         } catch (PDOException $e) {
+            // Do not leak raw exception details (schema, paths, credentials hints)
+            // to the client. Log it server-side instead.
+            error_log('DB connection failed: ' . $e->getMessage());
             http_response_code(500);
-            echo json_encode(['error' => 'Database connection failed: ' . $e->getMessage()]);
+            echo json_encode(['error' => 'Database connection failed.']);
             exit;
         }
     }
