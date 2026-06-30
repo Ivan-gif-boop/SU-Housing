@@ -78,7 +78,7 @@ include __DIR__ . '/../includes/sidebar.php';
     <div class="page-actions">
       <a href="/SU-Housing/student/browse.php"
          class="btn btn-primary">
-        🔍 Browse Hostels
+         Browse Hostels
       </a>
     </div>
   </div>
