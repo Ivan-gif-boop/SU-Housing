@@ -1,7 +1,7 @@
 // assets/js/listings.js
-// FR-02: add / edit listing  → POST   /SU-Housing/api/admin/listings.php
-// FR-04: remove listing      → DELETE /SU-Housing/api/admin/listings.php?id={id}
-//         restore listing    → PATCH  /SU-Housing/api/admin/listings.php?id={id}
+// FR-02: add / edit listing  → POST/PATCH /SU-Housing/api/listings.php
+// FR-04: remove listing      → DELETE /SU-Housing/api/listings.php?id={id}
+//         restore listing    → PATCH  /SU-Housing/api/listings.php?id={id}&action=restore
 
 // ── Filter table ──
 function filterListings() {
@@ -23,31 +23,29 @@ function filterListings() {
   });
 }
 
-// ── Modal helpers ──
+// ── Open add modal ──
 function openModal(id) {
   document.getElementById(id)?.classList.add('open');
 }
 
-function closeModal(id) {
-  document.getElementById(id)?.classList.remove('open');
-}
-
 // ── Open edit modal — pre-fill form ──
 function editListing(listing) {
-  document.getElementById('modalTitle').textContent    = 'Edit Listing';
-  document.getElementById('editHostelId').value        = listing.hostelId;
-  document.getElementById('lName').value               = listing.hostelName;
-  document.getElementById('lAddress').value            = listing.physicalAddress;
-  document.getElementById('lDesc').value               = listing.description ?? '';
-  document.getElementById('lPriceMin').value           = listing.priceMin;
-  document.getElementById('lPriceMax').value           = listing.priceMax;
-  document.getElementById('lRoomType').value           = listing.roomType;
-  document.getElementById('lRooms').value              = listing.roomsAvailable;
-  document.getElementById('lLandlordContact').value    = listing.landlordContact ?? '';
-  document.getElementById('lGenderPolicy').value       = listing.genderPolicy ?? '';
-  document.getElementById('lEnvironmentType').value    = listing.environmentType ?? '';
-  document.getElementById('lCurfewPolicy').value       = listing.curfewPolicy ?? '';
+  document.getElementById('modalTitle').textContent       = 'Edit Listing';
+  document.getElementById('editHostelId').value            = listing.hostelId;
+  document.getElementById('lName').value                   = listing.hostelName;
+  document.getElementById('lAddress').value                = listing.physicalAddress;
+  document.getElementById('lDesc').value                   = listing.description;
+  document.getElementById('lPriceMin').value                = listing.priceMin;
+  document.getElementById('lPriceMax').value                = listing.priceMax;
+  document.getElementById('lRoomType').value                = listing.roomType;
+  document.getElementById('lRooms').value                   = listing.roomsAvailable;
+  document.getElementById('lGenderPolicy').value             = listing.genderPolicy || '';
+  document.getElementById('lEnvironmentType').value          = listing.environmentType || '';
+  document.getElementById('lCurfewPolicy').value              = listing.curfewPolicy || '';
+  document.getElementById('lLandlordName').value              = listing.landlordName;
+  document.getElementById('lLandlordContact').value           = listing.landlordContact;
 
+  // Tick the right amenity checkboxes
   const amenities = Array.isArray(listing.amenities) ? listing.amenities : [];
   document.querySelectorAll('.modal-amenity').forEach(cb => {
     cb.checked = amenities.includes(cb.value);
@@ -59,12 +57,12 @@ function editListing(listing) {
 // ── Reset modal to add mode ──
 document.querySelector('[onclick="openModal(\'listingModal\')"]')
   ?.addEventListener('click', () => {
-    document.getElementById('modalTitle').textContent = 'Add New Listing';
-    document.getElementById('listingForm')?.reset();
-    document.getElementById('editHostelId').value = '';
-    document.querySelectorAll('.modal-amenity').forEach(cb => cb.checked = false);
-    clearAllErrors();
-  });
+  document.getElementById('modalTitle').textContent = 'Add New Listing';
+  document.getElementById('listingForm')?.reset();
+  document.getElementById('editHostelId').value = '';
+  document.querySelectorAll('.modal-amenity').forEach(cb => cb.checked = false);
+  clearAllErrors();
+});
 
 // ── Form validation helpers ──
 function showError(id, msg) {
@@ -86,23 +84,24 @@ function clearAllErrors() {
   document.querySelectorAll('.is-error').forEach(el => el.classList.remove('is-error'));
 }
 
-// ── Submit listing form → admin API ──
+// ── Submit listing form → real API ──
 async function submitListingForm() {
   clearAllErrors();
   let valid = true;
 
   const required = [
-    { id: 'lName',            msg: 'Hostel name is required.'      },
-    { id: 'lAddress',         msg: 'Physical address is required.' },
-    { id: 'lDesc',            msg: 'Description is required.'      },
-    { id: 'lPriceMin',        msg: 'Minimum price is required.'    },
-    { id: 'lPriceMax',        msg: 'Maximum price is required.'    },
-    { id: 'lRoomType',        msg: 'Room type is required.'        },
-    { id: 'lRooms',           msg: 'Rooms available is required.'  },
-    { id: 'lLandlordContact', msg: 'Landlord contact is required.' },
-    { id: 'lGenderPolicy',    msg: 'Gender policy is required.'    },
-    { id: 'lEnvironmentType', msg: 'Environment type is required.' },
-    { id: 'lCurfewPolicy',    msg: 'Curfew policy is required.'    },
+    { id: 'lName',             msg: 'Hostel name is required.'        },
+    { id: 'lAddress',          msg: 'Physical address is required.'   },
+    { id: 'lDesc',             msg: 'Description is required.'        },
+    { id: 'lPriceMin',         msg: 'Minimum price is required.'      },
+    { id: 'lPriceMax',         msg: 'Maximum price is required.'      },
+    { id: 'lRoomType',         msg: 'Room type is required.'          },
+    { id: 'lRooms',            msg: 'Rooms available is required.'    },
+    { id: 'lGenderPolicy',     msg: 'Gender policy is required.'      },
+    { id: 'lEnvironmentType',  msg: 'Environment type is required.'   },
+    { id: 'lCurfewPolicy',     msg: 'Curfew policy is required.'      },
+    { id: 'lLandlordName',     msg: 'Landlord name is required.'      },
+    { id: 'lLandlordContact',  msg: 'Landlord contact is required.'   },
   ];
 
   required.forEach(({ id, msg }) => {
@@ -129,29 +128,27 @@ async function submitListingForm() {
   ).map(cb => cb.value);
 
   const payload = {
-    hostelName:      document.getElementById('lName').value.trim(),
-    physicalAddress: document.getElementById('lAddress').value.trim(),
-    description:     document.getElementById('lDesc').value.trim(),
-    priceMin:        parseFloat(document.getElementById('lPriceMin').value),
-    priceMax:        parseFloat(document.getElementById('lPriceMax').value),
-    roomType:        document.getElementById('lRoomType').value,
-    roomsAvailable:  parseInt(document.getElementById('lRooms').value, 10),
-    landlordContact: document.getElementById('lLandlordContact').value.trim(),
-    genderPolicy:    document.getElementById('lGenderPolicy').value,
-    environmentType: document.getElementById('lEnvironmentType').value,
-    curfewPolicy:    document.getElementById('lCurfewPolicy').value,
+    hostelName:       document.getElementById('lName').value.trim(),
+    physicalAddress:  document.getElementById('lAddress').value.trim(),
+    description:      document.getElementById('lDesc').value.trim(),
+    priceMin:         parseFloat(document.getElementById('lPriceMin').value),
+    priceMax:         parseFloat(document.getElementById('lPriceMax').value),
+    roomType:         document.getElementById('lRoomType').value,
+    roomsAvailable:   parseInt(document.getElementById('lRooms').value, 10),
+    genderPolicy:     document.getElementById('lGenderPolicy').value,
+    environmentType:  document.getElementById('lEnvironmentType').value,
+    curfewPolicy:     document.getElementById('lCurfewPolicy').value,
+    landlordName:     document.getElementById('lLandlordName').value.trim(),
+    landlordContact:  document.getElementById('lLandlordContact').value.trim(),
     amenities,
   };
 
-  const url    = isEdit
-    ? `/SU-Housing/api/admin/listings.php?id=${hostelId}`
-    : '/SU-Housing/api/admin/listings.php';
+  const url    = '/SU-Housing/api/listings.php' + (isEdit ? `?id=${hostelId}` : '');
   const method = isEdit ? 'PATCH' : 'POST';
 
   try {
     const res  = await fetch(url, {
       method,
-      credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     });
@@ -179,7 +176,8 @@ function confirmRemove(id, name) {
   pendingRemoveId = id;
   document.getElementById('confirmTitle').textContent   = 'Remove Listing';
   document.getElementById('confirmMessage').textContent =
-    `Are you sure you want to remove "${name}" from the live database? Students will no longer see this listing.`;
+    `Are you sure you want to remove "${name}" from the live database?
+     Students will no longer be able to see this listing.`;
   const btn = document.getElementById('confirmActionBtn');
   btn.textContent = 'Confirm Remove';
   btn.className   = 'btn btn-danger';
@@ -202,15 +200,17 @@ function confirmRestore(id, name) {
 async function executeRemove() {
   try {
     const res  = await fetch(
-      `/SU-Housing/api/admin/listings.php?id=${pendingRemoveId}`,
-      { method: 'DELETE', credentials: 'include' }
+      `/SU-Housing/api/listings.php?id=${pendingRemoveId}`,
+      { method: 'DELETE' }
     );
     const data = await res.json();
-    closeModal('confirmModal');
+
     if (res.ok) {
+      closeModal('confirmModal');
       showToast('Listing removed from live database.', 'default');
       setTimeout(() => location.reload(), 1200);
     } else {
+      closeModal('confirmModal');
       showToast(data.error || 'Failed to remove listing.', 'error');
     }
   } catch (err) {
@@ -222,20 +222,17 @@ async function executeRemove() {
 async function executeRestore() {
   try {
     const res  = await fetch(
-      `/SU-Housing/api/admin/listings.php?id=${pendingRemoveId}`,
-      {
-        method: 'PATCH',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ isActive: 1 })
-      }
+      `/SU-Housing/api/listings.php?id=${pendingRemoveId}&action=restore`,
+      { method: 'PATCH' }
     );
     const data = await res.json();
-    closeModal('confirmModal');
+
     if (res.ok) {
+      closeModal('confirmModal');
       showToast('Listing restored and is now live.', 'success');
       setTimeout(() => location.reload(), 1200);
     } else {
+      closeModal('confirmModal');
       showToast(data.error || 'Failed to restore listing.', 'error');
     }
   } catch (err) {
@@ -244,21 +241,13 @@ async function executeRestore() {
   }
 }
 
-// ── Toast notification ──
-function showToast(message, type = 'default') {
-  const toast = document.createElement('div');
-  toast.className = `toast toast-${type}`;
-  toast.textContent = message;
-  toast.style.cssText = `
-    position:fixed; bottom:24px; right:24px; z-index:9999;
-    background:${type === 'success' ? '#16a34a' : type === 'error' ? '#dc2626' : '#374151'};
-    color:white; padding:12px 20px; border-radius:8px;
-    font-size:14px; box-shadow:0 4px 12px rgba(0,0,0,0.15);
-    transition:opacity 0.3s;
-  `;
-  document.body.appendChild(toast);
-  setTimeout(() => {
-    toast.style.opacity = '0';
-    setTimeout(() => toast.remove(), 300);
-  }, 3000);
-}
+// ── Amenity checkbox grid style ──
+const style = document.createElement('style');
+style.textContent = `
+  .amenities-check-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 8px;
+  }
+`;
+document.head.appendChild(style);

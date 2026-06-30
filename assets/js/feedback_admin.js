@@ -1,6 +1,6 @@
 // assets/js/feedback_admin.js
 // FR-11: classify feedback as positive or negative
-//        → POST /SU-Housing/api/feedback.php?id={id}&action=classify
+//        → PATCH /SU-Housing/api/feedback.php?id={id}
 
 // ── Tab switching ──
 function switchFeedbackTab(btn, tabId) {
@@ -47,9 +47,9 @@ async function classifyFeedback(feedbackId, sentiment) {
 
   try {
     const res = await fetch(
-      `/SU-Housing/api/feedback.php?id=${feedbackId}&action=classify`,
+      `/SU-Housing/api/feedback.php?id=${feedbackId}`,
       {
-        method:  'POST',
+        method:  'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({ classification: sentiment }),
       }
