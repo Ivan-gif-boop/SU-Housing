@@ -1,5 +1,9 @@
 <?php
 // api/listings.php
+// GET    — anyone logged in: browse/filter listings (FR-05, FR-06, FR-09)
+// POST   — admin only: create a new listing (FR-02)
+// PATCH  — admin only: edit a listing (?id=X)
+// DELETE — admin only: soft-delete a listing (?id=X) (FR-04)
 
 require_once __DIR__ . '/../includes/headers.php';
 require_once __DIR__ . '/../includes/auth.php';
@@ -49,10 +53,26 @@ if ($method === 'GET') {
         $params[]     = $_GET['roomType'];
     }
 
-    // Filter by gender policy (FR-06)
+    // Filter by gender policy (FR-06) — manual filter from the browse UI
     if (!empty($_GET['genderPolicy'])) {
         $conditions[] = 'l.genderPolicy = ?';
         $params[]     = $_GET['genderPolicy'];
+    }
+
+    // Automatic gender eligibility filter — students may only ever see
+    // hostels matching their own gender, or mixed-gender hostels.
+    // This is unconditional (does not depend on a preference profile)
+    // and does not apply to admins, who need full visibility.
+    if (!empty($_SESSION['studentId'])) {
+        $genderStmt = $db->prepare('SELECT gender FROM students WHERE studentId = ?');
+        $genderStmt->execute([$_SESSION['studentId']]);
+        $studentGender = $genderStmt->fetchColumn();
+
+        if ($studentGender === 'male') {
+            $conditions[] = "l.genderPolicy IN ('male_only', 'mixed')";
+        } elseif ($studentGender === 'female') {
+            $conditions[] = "l.genderPolicy IN ('female_only', 'mixed')";
+        }
     }
 
     // Filter by environment type (FR-06)
@@ -352,6 +372,16 @@ function scoreListingAgainstProfile(array $listing, array $profile): int {
     if ($profile['curfewPreference'] !== null) {
         $maxScore++;
         if ($listing['curfewPolicy'] === $profile['curfewPreference']) {
+            $score++;
+        }
+    }
+
+    // Location match — preferredLocation is free text (e.g. "Madaraka"),
+    // matched against physicalAddress since there is no separate
+    // neighbourhood column in the real schema
+    if (!empty($profile['preferredLocation'])) {
+        $maxScore++;
+        if (stripos($listing['physicalAddress'], $profile['preferredLocation']) !== false) {
             $score++;
         }
     }

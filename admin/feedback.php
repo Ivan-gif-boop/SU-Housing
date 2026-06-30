@@ -12,7 +12,6 @@ require_once __DIR__ . '/../config/db.php';
 $db = getDB();
 
 $userName = $_SESSION['fullName'] ?? 'Administrator';
-$userEmail = $_SESSION['email'] ?? null;
 
 // ── Fetch all feedback with student + hostel info ──
 // NOTE: the DB column is `classification`, not `sentiment`
@@ -51,6 +50,11 @@ $negativeCount = count(array_filter(
 ));
 $pendingCount  = count($pendingFeedback);
 
+// Active hostels — used to populate the student assignment dropdown
+$activeHostels = $db->query(
+    'SELECT hostelId, hostelName FROM hostel_listings WHERE isActive = 1 ORDER BY hostelName ASC'
+)->fetchAll();
+
 // ── Page meta ──
 $pageTitle  = 'Student Feedback';
 $activePage = 'feedback';
@@ -73,6 +77,35 @@ include __DIR__ . '/../includes/sidebar.php';
   </div>
 
   <div class="page-body">
+
+    <!-- ── Student hostel assignments (occupancy) ── -->
+    <div class="card mb-24">
+      <div class="card-header">
+        <span class="card-title">Student Hostel Assignments</span>
+      </div>
+      <div class="card-body">
+        <p style="font-size:13px; color:var(--gray-500); margin-bottom:16px;">
+          Assign each student to the hostel they currently occupy.
+          Students can only submit feedback for the hostel they are
+          assigned to here.
+        </p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Student</th>
+                <th>Admission No.</th>
+                <th>Current Hostel</th>
+                <th>Assign / Change</th>
+              </tr>
+            </thead>
+            <tbody id="studentAssignTableBody">
+              <tr><td colspan="4">Loading students…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
 
     <!-- ── Stats row ── -->
     <div class="stats-grid">
@@ -214,6 +247,10 @@ include __DIR__ . '/../includes/sidebar.php';
   </div><!-- end page-body -->
 
 <?php
-$extraScripts = ['/SU-Housing/assets/js/feedback_admin.js'];
+$extraScripts = ['/SU-Housing/assets/js/feedback_admin.js', '/SU-Housing/assets/js/student_assignment.js'];
+?>
+<script>
+  window.HOSTEL_OPTIONS = <?php echo json_encode($activeHostels); ?>;
+</script>
 include __DIR__ . '/../includes/footer.php';
 ?>

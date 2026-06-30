@@ -1,5 +1,9 @@
 <?php
 // api/feedback.php
+// GET   — student: own feedback only
+// GET   — admin (?all=1): all feedback, optional &hostelId=X filter
+// POST  — student: submit new feedback (FR-10)
+// PATCH — admin: classify + respond to feedback (?id=X) (FR-11)
 
 require_once __DIR__ . '/../includes/headers.php';
 require_once __DIR__ . '/../includes/auth.php';
@@ -115,6 +119,26 @@ if ($method === 'GET') {
     if (!$hostelStmt->fetch()) {
         http_response_code(404);
         echo json_encode(['error' => 'Hostel not found.']);
+        exit;
+    }
+
+    // Occupancy check — students may only review the hostel they are
+    // currently assigned to (set by the admin via students.currentHostelId)
+    $occupancyStmt = $db->prepare(
+        'SELECT currentHostelId FROM students WHERE studentId = ?'
+    );
+    $occupancyStmt->execute([$studentId]);
+    $currentHostelId = $occupancyStmt->fetchColumn();
+
+    if (!$currentHostelId) {
+        http_response_code(403);
+        echo json_encode(['error' => 'You are not currently assigned to a hostel. Contact the Dean of Students office to confirm your accommodation before submitting feedback.']);
+        exit;
+    }
+
+    if ((int) $currentHostelId !== $hostelId) {
+        http_response_code(403);
+        echo json_encode(['error' => 'You can only submit feedback for the hostel you are currently occupying.']);
         exit;
     }
 
