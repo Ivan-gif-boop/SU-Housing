@@ -95,7 +95,7 @@ $programmes = [
       <!-- PHP messages (server-rendered fallback, rarely used now that JS handles it) -->
       <?php if ($error): ?>
         <div class="auth-alert error">
-          ⚠️ <?php echo htmlspecialchars($error); ?>
+           <?php echo htmlspecialchars($error); ?>
         </div>
       <?php endif; ?>
       <?php if ($success): ?>
@@ -124,7 +124,7 @@ $programmes = [
             id="full_name"
             name="full_name"
             class="form-control"
-            placeholder="e.g. Michelle Wangui"
+            placeholder="Enter your full name"
             required
             autocomplete="name"
           />
@@ -135,13 +135,12 @@ $programmes = [
         <div class="form-group">
           <label for="admission_no">Admission Number</label>
           <div class="input-wrap">
-            <span class="input-icon">🎓</span>
             <input
               type="text"
               id="admission_no"
               name="admission_no"
               class="form-control"
-              placeholder="e.g. 176830"
+              placeholder="Enter your admission number"
               required
               maxlength="10"
               autocomplete="off"
@@ -176,13 +175,12 @@ $programmes = [
         <div class="form-group">
           <label for="password">Password</label>
           <div class="input-wrap">
-            <span class="input-icon">🔒</span>
             <input
               type="password"
               id="password"
               name="password"
               class="form-control"
-              placeholder="••••••••"
+              placeholder="Enter your password"
               required
               minlength="8"
               autocomplete="new-password"
@@ -196,13 +194,12 @@ $programmes = [
         <div class="form-group">
           <label for="confirm_password">Confirm Password</label>
           <div class="input-wrap">
-            <span class="input-icon">🔒</span>
             <input
               type="password"
               id="confirm_password"
               name="confirm_password"
               class="form-control"
-              placeholder="••••••••"
+              placeholder="Confirm your password"
               required
               autocomplete="new-password"
             />
