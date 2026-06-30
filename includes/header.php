@@ -1,11 +1,6 @@
 <?php
 // includes/header.php
 
-if (file_exists($_SERVER['DOCUMENT_ROOT'] . '/SU-Housing/includes/config.php')) {
-  require_once $_SERVER['DOCUMENT_ROOT'] . '/SU-Housing/includes/config.php';
-}
-
-// Safety fallback in case config.php is missing
 if (!defined('BASE_PATH')) {
   define('BASE_PATH', '/SU-Housing');
 }
@@ -21,7 +16,7 @@ $pageTitle = $pageTitle ?? 'SU-Housing';
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title><?php echo htmlspecialchars($pageTitle); ?> — SU-Housing</title>
+  <title><?php echo htmlspecialchars($pageTitle); ?> SU-Housing</title>
   <link rel="stylesheet" href="<?php echo BASE_PATH; ?>/assets/css/variables.css"/>
   <link rel="stylesheet" href="<?php echo BASE_PATH; ?>/assets/css/base.css"/>
   <link rel="stylesheet" href="<?php echo BASE_PATH; ?>/assets/css/components.css"/>
