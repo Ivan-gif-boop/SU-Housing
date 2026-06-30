@@ -15,38 +15,27 @@ $studentNav = [
     ['icon' => '⊞', 'label' => 'Dashboard', 'href' => BASE_PATH . '/student/dashboard.php', 'key' => 'dashboard'],
   ],
   'Accommodation' => [
-    ['icon' => '🔍', 'label' => 'Browse Hostels','href' => BASE_PATH . '/student/browse.php',     'key' => 'browse'],
+    ['icon' => '🔍', 'label' => 'Browse Hostels', 'href' => BASE_PATH . '/student/browse.php', 'key' => 'browse'],
   ],
   'My Activity' => [
-  ['icon' => '📝', 'label' => 'My Feedback',
-   'href' => '/SU-housing/student/feedback.php',   'key' => 'feedback'],
-],
-'Account' => [
-  ['icon' => '⚙️', 'label' => 'My Preferences',
-   'href' => '/SU-housing/student/preference_profile.php', 'key' => 'preferences'],
-  ['icon' => '👤', 'label' => 'My Profile',
-   'href' => '/SU-housing/student/profile.php',    'key' => 'profile'],
-],
+    ['icon' => '📝', 'label' => 'My Feedback', 'href' => BASE_PATH . '/student/feedback.php', 'key' => 'feedback'],
+  ],
+  'Account' => [
+    ['icon' => '⚙️', 'label' => 'My Preferences', 'href' => BASE_PATH . '/student/preference_profile.php', 'key' => 'preferences'],
+    ['icon' => '👤', 'label' => 'My Profile', 'href' => BASE_PATH . '/student/profile.php', 'key' => 'profile'],
+  ],
 ];
 
 $adminNav = [
   'Overview' => [
-    ['icon' => '⊞',  'label' => 'Dashboard',
-     'href' => '/SU-Housing/admin/dashboard.php',
-     'key'  => 'dashboard'],
+    ['icon' => '⊞', 'label' => 'Dashboard', 'href' => BASE_PATH . '/admin/dashboard.php', 'key' => 'dashboard'],
   ],
   'Management' => [
-    ['icon' => '🏠', 'label' => 'Manage Listings',
-     'href' => '/SU-Housing/admin/listings.php',
-     'key'  => 'listings'],
-    ['icon' => '📋', 'label' => 'Feedback',
-     'href' => '/SU-Housing/admin/feedback.php',
-     'key'  => 'feedback'],
+    ['icon' => '🏠', 'label' => 'Manage Listings', 'href' => BASE_PATH . '/admin/listings.php', 'key' => 'listings'],
+    ['icon' => '📋', 'label' => 'Feedback', 'href' => BASE_PATH . '/admin/feedback.php', 'key' => 'feedback'],
   ],
   'Account' => [
-    ['icon' => '👤', 'label' => 'Profile',
-     'href' => '/SU-Housing/admin/profile.php',
-     'key'  => 'profile'],
+    ['icon' => '👤', 'label' => 'Profile', 'href' => BASE_PATH . '/admin/profile.php', 'key' => 'profile'],
   ],
 ];
 
@@ -67,7 +56,7 @@ $nav = $userRole === 'admin' ? $adminNav : $studentNav;
       <div class="sidebar-logo">
         <div class="sidebar-logo-mark"><span>S</span></div>
         <div class="sidebar-logo-text">
-          <?php echo BASE_PATH; ?>
+          SU-Housing
           <small>Accommodation Portal</small>
         </div>
       </div>
