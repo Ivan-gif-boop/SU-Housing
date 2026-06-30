@@ -1,9 +1,5 @@
 <?php
 // admin/listings.php
-// FR-02: admin creates a hostel listing
-// FR-03: listing immediately visible on creation
-// FR-04: admin removes a listing (soft delete — isActive = 0)
-
 session_start();
 
 require_once __DIR__ . '/../includes/auth.php';
@@ -14,9 +10,7 @@ $db = getDB();
 
 $userName = $_SESSION['fullName'] ?? 'Administrator';
 
-// ── Fetch all listings (active + removed) from DB ──
-// NOTE: landlordName and landlordContact are now both separate
-// NOT NULL columns in the DB.
+// ── Fetch all listings (active + removed) from DB 
 $listingsStmt = $db->query(
     'SELECT hostelId, hostelName, physicalAddress, description,
             priceMin, priceMax, roomType, roomsAvailable, amenities,
