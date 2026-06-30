@@ -12,7 +12,6 @@ $db = getDB();
 
 $studentId = currentStudentId();
 
-// ── Real data from DB ──
 
 // Student name from session (set by login)
 $userName = $_SESSION['fullName'] ?? 'Student';

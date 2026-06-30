@@ -1,8 +1,5 @@
 <?php
 // includes/sidebar.php
-// Requires: $activePage (string matching nav item key), $userRole ('student' or 'admin')
-// These will come from $_SESSION once backend is wired up.
-// For now we use defaults for frontend testing.
 
 $activePage = $activePage ?? '';
 $userRole   = $userRole   ?? 'student';
