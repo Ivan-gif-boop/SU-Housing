@@ -153,7 +153,7 @@ async function fetchWalkingRoute(lat, lng) {
   const walkEl  = document.getElementById('walkDuration');
   const walkDEl = document.getElementById('walkDistance');
 
-  if (!ORS_API_KEY || ORS_API_KEY === 'YOUR_OPENROUTESERVICE_API_KEY') {
+  if (!ORS_API_KEY || ORS_API_KEY === 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImFhYTMzMWIzMWE5OTQ4YzJhNjlhZWE0MDFmNGYxZmY4IiwiaCI6Im11cm11cjY0In0=') {
     if (walkEl) walkEl.textContent = 'Unavailable';
     console.warn('OpenRouteService API key not configured — walking times disabled.');
     return;
