@@ -72,7 +72,7 @@ $pageTitle = 'Sign In';
           onclick="switchLoginRole('student')"
           type="button"
         >
-          🎓 Student
+          Student
         </button>
         <button
           class="role-toggle-btn"
@@ -80,7 +80,7 @@ $pageTitle = 'Sign In';
           onclick="switchLoginRole('admin')"
           type="button"
         >
-          🔑 Administrator
+          Administrator
         </button>
       </div>
 
@@ -100,12 +100,11 @@ $pageTitle = 'Sign In';
               Admission Number
             </label>
             <div class="input-wrap">
-              <span class="input-icon">🎓</span>
               <input
                 type="text"
                 id="admission_no"
                 class="form-control"
-                placeholder="e.g. 176830"
+                placeholder= "Enter your admission number"
                 autocomplete="username"
               />
             </div>
@@ -116,13 +115,12 @@ $pageTitle = 'Sign In';
           <div class="form-group">
             <label for="student_password">Password</label>
             <div class="input-wrap">
-              <span class="input-icon">🔒</span>
               <input
                 type="password"
                 id="student_password"
                 class="form-control"
-                placeholder="••••••••"
                 autocomplete="current-password"
+                placeholder="Enter your password"
               />
             </div>
             <div class="form-error"
@@ -169,7 +167,7 @@ $pageTitle = 'Sign In';
                 type="email"
                 id="admin_email"
                 class="form-control"
-                placeholder="admin@strathmore.edu"
+                placeholder="Enter your email"
                 autocomplete="email"
               />
             </div>
@@ -180,12 +178,11 @@ $pageTitle = 'Sign In';
           <div class="form-group">
             <label for="admin_password">Password</label>
             <div class="input-wrap">
-              <span class="input-icon">🔒</span>
               <input
                 type="password"
                 id="admin_password"
                 class="form-control"
-                placeholder="••••••••"
+                placeholder="Enter your password"
                 autocomplete="current-password"
               />
             </div>
