@@ -13,6 +13,53 @@ $db = getDB();
 $studentId = currentStudentId();
 $admissionNumber = $_SESSION['admissionNumber'] ?? null;
 
+$success = null;
+$error   = null;
+
+// ── Handle profile (name / programme) update ──
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['fullName']) && !isset($_POST['newPassword'])) {
+    $newName = trim($_POST['fullName']);
+    $newProgramme = trim($_POST['programme'] ?? '');
+
+    if ($newName === '') {
+        $error = 'Full name cannot be empty.';
+    } else {
+        $updateStmt = $db->prepare(
+            'UPDATE students SET fullName = ?, programme = ? WHERE studentId = ?'
+        );
+        $updateStmt->execute([$newName, $newProgramme, $studentId]);
+
+        $_SESSION['fullName'] = $newName;
+        $success = 'Profile updated successfully.';
+    }
+}
+
+// ── Handle password change ──
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['newPassword'])) {
+    $currentPw = $_POST['currentPassword'] ?? '';
+    $newPw     = $_POST['newPassword']     ?? '';
+    $confirmPw = $_POST['confirmNewPassword'] ?? '';
+
+    $hashStmt = $db->prepare('SELECT passwordHash FROM students WHERE studentId = ?');
+    $hashStmt->execute([$studentId]);
+    $row = $hashStmt->fetch();
+
+    if (!$row || !password_verify($currentPw, $row['passwordHash'])) {
+        $error = 'Current password is incorrect.';
+    } elseif (strlen($newPw) < 8) {
+        $error = 'New password must be at least 8 characters.';
+    } elseif ($newPw !== $confirmPw) {
+        $error = 'New passwords do not match.';
+    } else {
+        $newHash = password_hash($newPw, PASSWORD_BCRYPT);
+        $updateStmt = $db->prepare(
+            'UPDATE students SET passwordHash = ? WHERE studentId = ?'
+        );
+        $updateStmt->execute([$newHash, $studentId]);
+        $success = 'Password updated successfully.';
+    }
+}
+
 // ── Real data from DB ──
 
 $stmt = $db->prepare(
@@ -45,13 +92,6 @@ $stmt = $db->prepare(
 );
 $stmt->execute([$studentId]);
 $hasProfile = (bool) $stmt->fetch();
-
-$success = null;
-$error   = null;
-
-// NOTE: Save Changes / Update Password forms below still post to "#"
-// (no real action wired up yet). That's a separate, follow-up fix —
-// this pass only corrects the page from showing hardcoded/wrong data.
 
 // Frontend page meta
 $pageTitle  = 'My Profile';
@@ -106,29 +146,19 @@ include __DIR__ . '/../includes/sidebar.php';
             </div>
 
             <div class="profile-name">
-              <?php echo htmlspecialchars(
-                $student['fullName']
-              ); ?>
+              <?php echo htmlspecialchars($student['fullName']); ?>
             </div>
             <div class="profile-role-tag">Student</div>
 
             <div class="profile-stat-row">
               <div class="profile-stat">
-                <div class="profile-stat-num">
-                  <?php echo $feedbackCount; ?>
-                </div>
-                <div class="profile-stat-label">
-                  Feedback
-                </div>
+                <div class="profile-stat-num"><?php echo $feedbackCount; ?></div>
+                <div class="profile-stat-label">Feedback</div>
               </div>
               <div class="profile-stat-divider"></div>
               <div class="profile-stat">
-                <div class="profile-stat-num">
-                  <?php echo $hasProfile ? '✓' : '—'; ?>
-                </div>
-                <div class="profile-stat-label">
-                  Preferences
-                </div>
+                <div class="profile-stat-num"><?php echo $hasProfile ? '✓' : '—'; ?></div>
+                <div class="profile-stat-label">Preferences</div>
               </div>
             </div>
 
@@ -138,30 +168,21 @@ include __DIR__ . '/../includes/sidebar.php';
         <!-- Quick links -->
         <div class="card" style="margin-top:16px;">
           <div class="card-header">
-            <span class="card-title"
-                  style="font-size:15px;">
-              Quick Links
-            </span>
+            <span class="card-title" style="font-size:15px;">Quick Links</span>
           </div>
           <div class="card-body"
-               style="display:flex;
-                      flex-direction:column;
-                      gap:8px; padding:16px;">
-            <a href="/SU-Housing/student/browse.php"
-               class="btn btn-outline btn-full">
+               style="display:flex; flex-direction:column; gap:8px; padding:16px;">
+            <a href="/SU-Housing/student/browse.php" class="btn btn-outline btn-full">
               🔍 Browse Hostels
             </a>
-            <a href="/SU-Housing/student/preference_profile.php"
-               class="btn btn-outline btn-full">
+            <a href="/SU-Housing/student/preference_profile.php" class="btn btn-outline btn-full">
               ⚙️ Edit Preferences
             </a>
-            <a href="/SU-Housing/student/feedback.php"
-               class="btn btn-outline btn-full">
+            <a href="/SU-Housing/student/feedback.php" class="btn btn-outline btn-full">
               📝 My Feedback
             </a>
             <hr class="divider" style="margin:4px 0;"/>
-            <a href="/SU-Housing/logout.php"
-               class="btn btn-danger btn-full">
+            <a href="/SU-Housing/logout.php" class="btn btn-danger btn-full">
               Sign Out
             </a>
           </div>
@@ -172,7 +193,6 @@ include __DIR__ . '/../includes/sidebar.php';
       <!-- ════ RIGHT: Forms ════ -->
       <div class="profile-main-col">
 
-        <!-- PHP messages -->
         <?php if ($success): ?>
           <div class="alert alert-success mb-16">
             ✓ <?php echo htmlspecialchars($success); ?>
@@ -187,19 +207,10 @@ include __DIR__ . '/../includes/sidebar.php';
         <!-- ── Personal information ── -->
         <div class="card mb-16">
           <div class="card-header">
-            <span class="card-title">
-              Personal Information
-            </span>
+            <span class="card-title">Personal Information</span>
           </div>
           <div class="card-body">
-            <!--
-              Backend hook (still pending — separate fix):
-              action="/SU-Housing/api/auth/update_profile.php"
-              method="POST"
-              Michelle adds csrfField() here
-            -->
-            <form action="#" method="POST"
-                  id="profileForm" novalidate>
+            <form action="" method="POST" id="profileForm" novalidate>
 
               <div class="form-group">
                 <label for="fullName">Full Name</label>
@@ -208,26 +219,19 @@ include __DIR__ . '/../includes/sidebar.php';
                   id="fullName"
                   name="fullName"
                   class="form-control"
-                  value="<?php echo htmlspecialchars(
-                    $student['fullName']
-                  ); ?>"
+                  value="<?php echo htmlspecialchars($student['fullName']); ?>"
                   required
                 />
-                <div class="form-error"
-                     id="err-fullName"></div>
+                <div class="form-error" id="err-fullName"></div>
               </div>
 
               <div class="form-group">
-                <label for="admissionNumber">
-                  Admission Number
-                </label>
+                <label for="admissionNumber">Admission Number</label>
                 <input
                   type="text"
                   id="admissionNumber"
                   class="form-control"
-                  value="<?php echo htmlspecialchars(
-                    $student['admissionNumber']
-                  ); ?>"
+                  value="<?php echo htmlspecialchars($student['admissionNumber']); ?>"
                   readonly
                 />
                 <div class="form-hint">
@@ -236,17 +240,12 @@ include __DIR__ . '/../includes/sidebar.php';
               </div>
 
               <div class="form-group">
-                <label for="programme">
-                  Programme of Study
-                </label>
-                <select id="programme"
-                        name="programme"
-                        class="form-control">
+                <label for="programme">Programme of Study</label>
+                <select id="programme" name="programme" class="form-control">
                   <?php foreach ($programmes as $prog): ?>
                     <option
                       value="<?php echo htmlspecialchars($prog); ?>"
-                      <?php echo trim($student['programme']) ===
-                        trim($prog) ? 'selected' : ''; ?>
+                      <?php echo trim($student['programme']) === trim($prog) ? 'selected' : ''; ?>
                     >
                       <?php echo htmlspecialchars($prog); ?>
                     </option>
@@ -254,9 +253,7 @@ include __DIR__ . '/../includes/sidebar.php';
                 </select>
               </div>
 
-              <button type="submit"
-                      class="btn btn-primary"
-                      onclick="return validateProfile()">
+              <button type="submit" class="btn btn-primary" onclick="return validateProfile()">
                 Save Changes
               </button>
 
@@ -270,19 +267,10 @@ include __DIR__ . '/../includes/sidebar.php';
             <span class="card-title">Change Password</span>
           </div>
           <div class="card-body">
-            <!--
-              Backend hook (still pending — separate fix):
-              action="/SU-Housing/api/auth/change_password.php"
-              method="POST"
-              Michelle adds csrfField() here
-            -->
-            <form action="#" method="POST"
-                  id="passwordForm" novalidate>
+            <form action="" method="POST" id="passwordForm" novalidate>
 
               <div class="form-group">
-                <label for="currentPassword">
-                  Current Password
-                </label>
+                <label for="currentPassword">Current Password</label>
                 <input
                   type="password"
                   id="currentPassword"
@@ -291,15 +279,12 @@ include __DIR__ . '/../includes/sidebar.php';
                   placeholder="••••••••"
                   required
                 />
-                <div class="form-error"
-                     id="err-currentPassword"></div>
+                <div class="form-error" id="err-currentPassword"></div>
               </div>
 
               <div class="form-row">
                 <div class="form-group">
-                  <label for="newPassword">
-                    New Password
-                  </label>
+                  <label for="newPassword">New Password</label>
                   <input
                     type="password"
                     id="newPassword"
@@ -309,13 +294,10 @@ include __DIR__ . '/../includes/sidebar.php';
                     minlength="8"
                     required
                   />
-                  <div class="form-error"
-                       id="err-newPassword"></div>
+                  <div class="form-error" id="err-newPassword"></div>
                 </div>
                 <div class="form-group">
-                  <label for="confirmNewPassword">
-                    Confirm New Password
-                  </label>
+                  <label for="confirmNewPassword">Confirm New Password</label>
                   <input
                     type="password"
                     id="confirmNewPassword"
@@ -324,19 +306,15 @@ include __DIR__ . '/../includes/sidebar.php';
                     placeholder="••••••••"
                     required
                   />
-                  <div class="form-error"
-                       id="err-confirmNewPassword"></div>
+                  <div class="form-error" id="err-confirmNewPassword"></div>
                 </div>
               </div>
 
-              <div class="form-hint" style="margin-top:-8px;
-                           margin-bottom:16px;">
+              <div class="form-hint" style="margin-top:-8px; margin-bottom:16px;">
                 Minimum 8 characters.
               </div>
 
-              <button type="submit"
-                      class="btn btn-navy"
-                      onclick="return validatePassword()">
+              <button type="submit" class="btn btn-navy" onclick="return validatePassword()">
                 Update Password
               </button>
 
@@ -370,9 +348,7 @@ function validateProfile() {
 function validatePassword() {
   let valid = true;
 
-  const fields = [
-    'currentPassword', 'newPassword', 'confirmNewPassword'
-  ];
+  const fields = ['currentPassword', 'newPassword', 'confirmNewPassword'];
   fields.forEach(id => {
     const el  = document.getElementById(id);
     const err = document.getElementById('err-' + id);
@@ -380,34 +356,24 @@ function validatePassword() {
     el.classList.remove('is-error');
   });
 
-  const current = document.getElementById(
-    'currentPassword'
-  ).value;
+  const current = document.getElementById('currentPassword').value;
   if (!current) {
-    document.getElementById('err-currentPassword')
-      .textContent = 'Current password is required.';
-    document.getElementById('currentPassword')
-      .classList.add('is-error');
+    document.getElementById('err-currentPassword').textContent = 'Current password is required.';
+    document.getElementById('currentPassword').classList.add('is-error');
     valid = false;
   }
 
   const newPw = document.getElementById('newPassword').value;
   if (newPw.length < 8) {
-    document.getElementById('err-newPassword')
-      .textContent = 'Minimum 8 characters.';
-    document.getElementById('newPassword')
-      .classList.add('is-error');
+    document.getElementById('err-newPassword').textContent = 'Minimum 8 characters.';
+    document.getElementById('newPassword').classList.add('is-error');
     valid = false;
   }
 
-  const confirm = document.getElementById(
-    'confirmNewPassword'
-  ).value;
+  const confirm = document.getElementById('confirmNewPassword').value;
   if (newPw !== confirm) {
-    document.getElementById('err-confirmNewPassword')
-      .textContent = 'Passwords do not match.';
-    document.getElementById('confirmNewPassword')
-      .classList.add('is-error');
+    document.getElementById('err-confirmNewPassword').textContent = 'Passwords do not match.';
+    document.getElementById('confirmNewPassword').classList.add('is-error');
     valid = false;
   }
 
