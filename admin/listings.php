@@ -9,6 +9,7 @@ require_once __DIR__ . '/../config/db.php';
 $db = getDB();
 
 $userName = $_SESSION['fullName'] ?? 'Administrator';
+$userEmail = $_SESSION['email'] ?? null;
 
 // ── Fetch all listings (active + removed) from DB 
 $listingsStmt = $db->query(

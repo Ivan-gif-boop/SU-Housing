@@ -11,6 +11,7 @@ require_once __DIR__ . '/../config/db.php';
 $db = getDB();
 
 $studentId = currentStudentId();
+$admissionNumber = $_SESSION['admissionNumber'] ?? null;
 
 // ── Real data from DB ──
 
@@ -25,7 +26,7 @@ $student = $stmt->fetch();
 if (!$student) {
     $student = [
         'fullName'        => $_SESSION['fullName'] ?? 'Student',
-        'admissionNumber' => '',
+        'admissionNumber' => $admissionNumber,
         'programme'       => '',
     ];
 }

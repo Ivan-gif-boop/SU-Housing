@@ -14,6 +14,7 @@ $db = getDB();
 
 $studentId = currentStudentId();
 $userName  = $_SESSION['fullName'] ?? 'Student';
+$admissionNumber = $_SESSION['admissionNumber'] ?? null;
 
 // ── Check if student has a preference profile (FR-09) ──
 $profStmt = $db->prepare(

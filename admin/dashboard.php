@@ -10,6 +10,7 @@ require_once __DIR__ . '/../config/db.php';
 $db = getDB();
 
 $userName = $_SESSION['fullName'] ?? 'Administrator';
+$userEmail = $_SESSION['email'] ?? null;
 
 // Summary stats
 $activeListings = (int)$db->query(

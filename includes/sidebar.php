@@ -1,13 +1,20 @@
 <?php
 // includes/sidebar.php
 
-$activePage = $activePage ?? '';
-$userRole   = $userRole   ?? 'student';
-$userName   = $userName   ?? 'Student User';
-$userEmail  = $userEmail  ?? 'student@strathmore.edu';
+$activePage      = $activePage      ?? '';
+$userRole        = $userRole        ?? 'student';
+$userName        = $userName        ?? 'Student User';
+$userEmail       = $userEmail       ?? null;
+$admissionNumber = $admissionNumber ?? null;
 
 $avatarLetter = strtoupper(substr($userName, 0, 1));
 $roleLabel    = $userRole === 'admin' ? 'Administrator' : 'Student';
+
+// Subtext under the name in the footer pill:
+// admins show their email, students show their admission number
+$footerSubtext = $userRole === 'admin'
+    ? ($userEmail ?? '')
+    : ($admissionNumber ? 'Admission: ' . $admissionNumber : '');
 
 // ── Nav structure ──
 $studentNav = [
@@ -92,7 +99,9 @@ $nav = $userRole === 'admin' ? $adminNav : $studentNav;
         <div class="user-avatar"><?php echo $avatarLetter; ?></div>
         <div class="user-info">
           <div class="user-name"><?php echo htmlspecialchars($userName); ?></div>
-          <div class="user-email"><?php echo htmlspecialchars($userEmail); ?></div>
+          <?php if ($footerSubtext): ?>
+            <div class="user-email"><?php echo htmlspecialchars($footerSubtext); ?></div>
+          <?php endif; ?>
         </div>
         <span class="logout-icon">⇥</span>
       </a>

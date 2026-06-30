@@ -15,6 +15,7 @@ $studentId = currentStudentId();
 
 // Student name from session (set by login)
 $userName = $_SESSION['fullName'] ?? 'Student';
+$admissionNumber = $_SESSION['admissionNumber'] ?? null;
 
 // Total active listings
 $totalListings = (int) $db->query(

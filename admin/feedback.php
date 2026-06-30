@@ -12,6 +12,7 @@ require_once __DIR__ . '/../config/db.php';
 $db = getDB();
 
 $userName = $_SESSION['fullName'] ?? 'Administrator';
+$userEmail = $_SESSION['email'] ?? null;
 
 // ── Fetch all feedback with student + hostel info ──
 // NOTE: the DB column is `classification`, not `sentiment`

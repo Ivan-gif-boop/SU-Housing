@@ -80,6 +80,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['newPassword'])) {
 }
 
 $userName = $admin['fullName'] ?? ($_SESSION['fullName'] ?? 'Administrator');
+$userEmail = $admin['email'] ?? ($_SESSION['email'] ?? null);
 
 $avatarLetter = strtoupper(substr($userName, 0, 1));
 

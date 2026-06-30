@@ -32,6 +32,7 @@ $pageTitle  = 'Preference Profile';
 $activePage = 'profile';
 $userRole   = 'student';
 $userName   = $_SESSION['fullName'] ?? 'Student';
+$admissionNumber = $_SESSION['admissionNumber'] ?? null;
 
 $isPostRegistration = isset($_GET['new']) && $_GET['new'] === '1';
 

@@ -33,7 +33,7 @@ if (!empty($data['email'])) {
     }
 
     $stmt = $db->prepare(
-        'SELECT adminId, fullName, passwordHash FROM admins WHERE email = ?'
+        'SELECT adminId, fullName, email, passwordHash FROM admins WHERE email = ?'
     );
     $stmt->execute([$email]);
     $admin = $stmt->fetch();
@@ -47,12 +47,14 @@ if (!empty($data['email'])) {
     session_regenerate_id(true);
     $_SESSION['adminId']  = $admin['adminId'];
     $_SESSION['fullName'] = $admin['fullName'];
+    $_SESSION['email']    = $admin['email'];
     $_SESSION['role']     = 'admin';
 
     echo json_encode([
         'message'  => 'Login successful.',
         'adminId'  => $admin['adminId'],
         'fullName' => $admin['fullName'],
+        'email'    => $admin['email'],
         'role'     => 'admin'
     ]);
 
@@ -61,7 +63,7 @@ if (!empty($data['email'])) {
     $admissionNumber = trim($data['admissionNumber']);
 
     $stmt = $db->prepare(
-        'SELECT studentId, fullName, passwordHash FROM students WHERE admissionNumber = ?'
+        'SELECT studentId, fullName, admissionNumber, passwordHash FROM students WHERE admissionNumber = ?'
     );
     $stmt->execute([$admissionNumber]);
     $student = $stmt->fetch();
@@ -73,15 +75,17 @@ if (!empty($data['email'])) {
     }
 
     session_regenerate_id(true);
-    $_SESSION['studentId'] = $student['studentId'];
-    $_SESSION['fullName']  = $student['fullName'];
-    $_SESSION['role']      = 'student';
+    $_SESSION['studentId']       = $student['studentId'];
+    $_SESSION['fullName']        = $student['fullName'];
+    $_SESSION['admissionNumber'] = $student['admissionNumber'];
+    $_SESSION['role']            = 'student';
 
     echo json_encode([
-        'message'   => 'Login successful.',
-        'studentId' => $student['studentId'],
-        'fullName'  => $student['fullName'],
-        'role'      => 'student'
+        'message'         => 'Login successful.',
+        'studentId'       => $student['studentId'],
+        'fullName'        => $student['fullName'],
+        'admissionNumber' => $student['admissionNumber'],
+        'role'            => 'student'
     ]);
 
 } else {
