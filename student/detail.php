@@ -28,7 +28,7 @@ if (!$hostel) {
 
 $hostel['amenities']     = json_decode($hostel['amenities'], true);
 $hostel['location'] = $hostel['physicalAddress'];
-$hostel['landlordName']  = 'Contact via Office';
+$hostel['landlordName']  = $hostel['landlordName'];
 $hostel['landlordPhone'] = $hostel['landlordContact'];
 
 $travelData = [];
