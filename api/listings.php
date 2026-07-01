@@ -329,11 +329,14 @@ if ($method === 'GET') {
 }
 
 // Preference scoring algorithm (FR-09)
+// Maps all student lifestyle preferences against hostel attributes.
+// Each criterion that is set contributes equally to the final percentage.
 function scoreListingAgainstProfile(array $listing, array $profile): int {
     $score    = 0;
     $maxScore = 0;
 
-    // Budget fit
+    // ── Budget fit ──
+    // Passes if the hostel's price range overlaps with the student's budget
     if ($profile['budgetMin'] !== null && $profile['budgetMax'] !== null) {
         $maxScore++;
         if (
@@ -344,44 +347,109 @@ function scoreListingAgainstProfile(array $listing, array $profile): int {
         }
     }
 
-    // Room type match
-    if ($profile['roomTypePreference'] !== null) {
+    // ── Room type match ──
+    if (!empty($profile['roomTypePreference'])) {
         $maxScore++;
         if ($listing['roomType'] === $profile['roomTypePreference']) {
             $score++;
         }
     }
 
-    // Environment type match
-    if ($profile['environmentType'] !== null) {
-        $maxScore++;
-        if ($listing['environmentType'] === $profile['environmentType']) {
-            $score++;
-        }
-    }
-
-    // Gender policy match
-    if ($profile['genderPreference'] !== null) {
+    // ── Gender policy match ──
+    if (!empty($profile['genderPreference'])) {
         $maxScore++;
         if ($listing['genderPolicy'] === $profile['genderPreference']) {
             $score++;
         }
     }
 
-    // Curfew policy match
-    if ($profile['curfewPreference'] !== null) {
+    // ── Location match ──
+    // preferredLocation (e.g. "Madaraka") is matched against physicalAddress
+    if (!empty($profile['preferredLocation'])) {
+        $maxScore++;
+        if (stripos($listing['physicalAddress'], $profile['preferredLocation']) !== false) {
+            $score++;
+        }
+    }
+
+    // ── Noise tolerance → environment type ──
+    // A student's noise tolerance maps directly to the hostel's environment type
+    // quiet/moderate/lively are shared enum values on both sides
+    if (!empty($profile['noiseTolerance'])) {
+        $maxScore++;
+        if ($listing['environmentType'] === $profile['noiseTolerance']) {
+            $score++;
+        }
+    }
+
+    // ── Study habits → environment type + curfew policy ──
+    // early_riser: prefers quiet environment AND early curfew (before_10pm)
+    // night_owl:   needs no curfew to study late
+    // flexible:    any environment or curfew is fine (always scores the point)
+    if (!empty($profile['studyHabits'])) {
+        $maxScore++;
+        switch ($profile['studyHabits']) {
+            case 'early_riser':
+                if (
+                    $listing['environmentType'] === 'quiet' &&
+                    $listing['curfewPolicy']    === 'before_10pm'
+                ) {
+                    $score++;
+                }
+                break;
+            case 'night_owl':
+                if ($listing['curfewPolicy'] === 'no_curfew') {
+                    $score++;
+                }
+                break;
+            case 'flexible':
+                $score++; // flexible students are compatible with any hostel
+                break;
+        }
+    }
+
+    // ── Sleep schedule → curfew policy ──
+    // Maps the student's sleep time to compatible curfew policies:
+    // before_10pm  → compatible with before_10pm curfew
+    // 10pm_12am    → compatible with before_midnight or before_10pm
+    // after_midnight → needs no_curfew
+    if (!empty($profile['sleepSchedule'])) {
+        $maxScore++;
+        switch ($profile['sleepSchedule']) {
+            case 'before_10pm':
+                if ($listing['curfewPolicy'] === 'before_10pm') {
+                    $score++;
+                }
+                break;
+            case '10pm_12am':
+                if (in_array($listing['curfewPolicy'], ['before_10pm', 'before_midnight'])) {
+                    $score++;
+                }
+                break;
+            case 'after_midnight':
+                if ($listing['curfewPolicy'] === 'no_curfew') {
+                    $score++;
+                }
+                break;
+        }
+    }
+
+    // ── Curfew preference (explicit) ──
+    // Direct match between student's stated curfew preference
+    // and the hostel's curfew policy
+    if (!empty($profile['curfewPreference'])) {
         $maxScore++;
         if ($listing['curfewPolicy'] === $profile['curfewPreference']) {
             $score++;
         }
     }
 
-    // Location match — preferredLocation is free text (e.g. "Madaraka"),
-    // matched against physicalAddress since there is no separate
-    // neighbourhood column in the real schema
-    if (!empty($profile['preferredLocation'])) {
+    // ── Environment type (explicit) ──
+    // Direct match between student's stated environment preference
+    // and the hostel's environment type
+    if (!empty($profile['environmentType'])) {
         $maxScore++;
-        if (stripos($listing['physicalAddress'], $profile['preferredLocation']) !== false) {
+        if ($listing['environmentType'] === $profile['environmentType']) {
             $score++;
         }
     }
