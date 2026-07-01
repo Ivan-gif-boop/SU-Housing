@@ -252,5 +252,6 @@ $extraScripts = ['/SU-Housing/assets/js/feedback_admin.js', '/SU-Housing/assets/
 <script>
   window.HOSTEL_OPTIONS = <?php echo json_encode($activeHostels); ?>;
 </script>
+<?php
 include __DIR__ . '/../includes/footer.php';
 ?>
