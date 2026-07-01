@@ -13,13 +13,15 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 $data = json_decode(file_get_contents('php://input'), true);
 
-$fullName        = trim($data['fullName'] ?? '');
+$fullName        = trim($data['fullName']        ?? '');
 $admissionNumber = trim($data['admissionNumber'] ?? '');
-$programme       = trim($data['programme'] ?? '');
-$password        = $data['password'] ?? '';
-$confirmPassword = $data['confirmPassword'] ?? '';
+$programme       = trim($data['programme']       ?? '');
+$gender          = trim($data['gender']          ?? '');
+$password        = $data['password']             ?? '';
+$confirmPassword = $data['confirmPassword']      ?? '';
 
-if (!$fullName || !$admissionNumber || !$password || !$confirmPassword) {
+// ── Validation ──
+if (!$fullName || !$admissionNumber || !$gender || !$password || !$confirmPassword) {
     http_response_code(400);
     echo json_encode(['error' => 'All fields are required.']);
     exit;
@@ -28,6 +30,12 @@ if (!$fullName || !$admissionNumber || !$password || !$confirmPassword) {
 if (!preg_match('/^\d{5,8}$/', $admissionNumber)) {
     http_response_code(400);
     echo json_encode(['error' => 'Admission number must be 5 to 8 digits.']);
+    exit;
+}
+
+if (!in_array($gender, ['male', 'female'])) {
+    http_response_code(400);
+    echo json_encode(['error' => 'Gender must be male or female.']);
     exit;
 }
 
@@ -45,6 +53,7 @@ if ($password !== $confirmPassword) {
 
 $db = getDB();
 
+// ── Check for existing admission number ──
 $stmt = $db->prepare(
     'SELECT studentId FROM students WHERE admissionNumber = ?'
 );
@@ -57,27 +66,33 @@ if ($stmt->fetch()) {
 
 $passwordHash = password_hash($password, PASSWORD_BCRYPT, ['cost' => 12]);
 
+// ── Insert — gender column now included ──
 $stmt = $db->prepare(
-    'INSERT INTO students (fullName, admissionNumber, programme, passwordHash)
-     VALUES (?, ?, ?, ?)'
+    'INSERT INTO students (fullName, admissionNumber, gender, programme, passwordHash)
+     VALUES (?, ?, ?, ?, ?)'
 );
 $stmt->execute([
     $fullName,
     $admissionNumber,
+    $gender,
     $programme ?: null,
-    $passwordHash
+    $passwordHash,
 ]);
 
-$studentId = $db->lastInsertId();
+$studentId = (int) $db->lastInsertId();
 
-$_SESSION['studentId'] = $studentId;
-$_SESSION['fullName']  = $fullName;
-$_SESSION['role']      = 'student';
+// ── Set session — matches what login.php stores ──
+session_regenerate_id(true);
+$_SESSION['studentId']       = $studentId;
+$_SESSION['fullName']        = $fullName;
+$_SESSION['admissionNumber'] = $admissionNumber;
+$_SESSION['role']            = 'student';
 
 http_response_code(201);
 echo json_encode([
-    'message'   => 'Account created successfully.',
-    'studentId' => $studentId,
-    'fullName'  => $fullName,
-    'role'      => 'student'
+    'message'         => 'Account created successfully.',
+    'studentId'       => $studentId,
+    'fullName'        => $fullName,
+    'admissionNumber' => $admissionNumber,
+    'role'            => 'student',
 ]);

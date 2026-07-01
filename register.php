@@ -1,8 +1,5 @@
 <?php
 // register.php
-// Backend hook: partner adds POST processing logic above this line.
-// $error   = "Admission number already registered.";
-// $success = "Account created. Please sign in.";
 
 $pageTitle = 'Create Account';
 $error     = $error   ?? null;
@@ -13,7 +10,7 @@ $programmes = [
   'Bachelor of Science in Hospitality Management',
   'Bachelor of Business Science: Financial Engineering',
   'Bachelor of Business Science: Financial Economics',
-  'Bachelor of Business Science: Acturial Science',
+  'Bachelor of Business Science: Actuarial Science',
   'Bachelor of Science in Informatics and Computer Science',
   'Bachelor of Business Information Technology',
   'Bachelor of Laws',
@@ -23,7 +20,7 @@ $programmes = [
   'Bachelor of Science in Supply Chain and Operations Management',
   'Bachelor of Financial Services',
   'Bachelor of Science in Electrical and Electronics Engineering',
-  'BSc in Statisctics and Data Science',
+  'BSc in Statistics and Data Science',
   'Bachelor of Commerce',
   'Diploma in International Relations',
   'Diploma in Business Management',
@@ -37,10 +34,10 @@ $programmes = [
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title><?php echo $pageTitle; ?> — SU-Housing</title>
-  <link rel="stylesheet" href="/SU-housing/assets/css/variables.css"/>
-  <link rel="stylesheet" href="/SU-housing/assets/css/base.css"/>
-  <link rel="stylesheet" href="/SU-housing/assets/css/components.css"/>
-  <link rel="stylesheet" href="/SU-housing/assets/css/auth.css"/>
+  <link rel="stylesheet" href="/SU-Housing/assets/css/variables.css"/>
+  <link rel="stylesheet" href="/SU-Housing/assets/css/base.css"/>
+  <link rel="stylesheet" href="/SU-Housing/assets/css/components.css"/>
+  <link rel="stylesheet" href="/SU-Housing/assets/css/auth.css"/>
 </head>
 <body>
 
@@ -92,10 +89,9 @@ $programmes = [
         Students only. You will need your admission number.
       </p>
 
-      <!-- PHP messages (server-rendered fallback, rarely used now that JS handles it) -->
       <?php if ($error): ?>
         <div class="auth-alert error">
-           <?php echo htmlspecialchars($error); ?>
+          <?php echo htmlspecialchars($error); ?>
         </div>
       <?php endif; ?>
       <?php if ($success): ?>
@@ -104,15 +100,12 @@ $programmes = [
         </div>
       <?php endif; ?>
 
-      <!-- API error/success alert (JS-driven) -->
       <div class="auth-alert error"
            id="registerError"
-           style="display:none; margin-bottom:16px;">
-      </div>
+           style="display:none; margin-bottom:16px;"></div>
       <div class="auth-alert success"
            id="registerSuccess"
-           style="display:none; margin-bottom:16px;">
-      </div>
+           style="display:none; margin-bottom:16px;"></div>
 
       <form id="registerForm" novalidate>
 
@@ -134,22 +127,43 @@ $programmes = [
         <!-- Admission Number -->
         <div class="form-group">
           <label for="admission_no">Admission Number</label>
-          <div class="input-wrap">
-            <input
-              type="text"
-              id="admission_no"
-              name="admission_no"
-              class="form-control"
-              placeholder="Enter your admission number"
-              required
-              maxlength="10"
-              autocomplete="off"
-            />
-          </div>
+          <input
+            type="text"
+            id="admission_no"
+            name="admission_no"
+            class="form-control"
+            placeholder="Enter your admission number"
+            required
+            maxlength="10"
+            autocomplete="off"
+          />
           <div class="form-hint">
             Must be a valid admission number (e.g. 6 digits)
           </div>
           <div class="form-error" id="err-admission_no"></div>
+        </div>
+
+        <!-- Gender — required for hostel eligibility filtering -->
+        <div class="form-group">
+          <label>Gender</label>
+          <div style="display:flex; gap:24px; margin-top:8px;">
+            <label style="display:flex; align-items:center; gap:8px;
+                          font-size:15px; cursor:pointer;">
+              <input type="radio" name="gender" id="gender_male"
+                     value="male" required/>
+              Male
+            </label>
+            <label style="display:flex; align-items:center; gap:8px;
+                          font-size:15px; cursor:pointer;">
+              <input type="radio" name="gender" id="gender_female"
+                     value="female"/>
+              Female
+            </label>
+          </div>
+          <div class="form-hint" style="margin-top:6px;">
+            Used to show you only hostels you are eligible for.
+          </div>
+          <div class="form-error" id="err-gender"></div>
         </div>
 
         <!-- Programme -->
@@ -174,18 +188,16 @@ $programmes = [
         <!-- Password -->
         <div class="form-group">
           <label for="password">Password</label>
-          <div class="input-wrap">
-            <input
-              type="password"
-              id="password"
-              name="password"
-              class="form-control"
-              placeholder="Enter your password"
-              required
-              minlength="8"
-              autocomplete="new-password"
-            />
-          </div>
+          <input
+            type="password"
+            id="password"
+            name="password"
+            class="form-control"
+            placeholder="Enter your password"
+            required
+            minlength="8"
+            autocomplete="new-password"
+          />
           <div class="form-hint">Minimum 8 characters.</div>
           <div class="form-error" id="err-password"></div>
         </div>
@@ -193,21 +205,21 @@ $programmes = [
         <!-- Confirm Password -->
         <div class="form-group">
           <label for="confirm_password">Confirm Password</label>
-          <div class="input-wrap">
-            <input
-              type="password"
-              id="confirm_password"
-              name="confirm_password"
-              class="form-control"
-              placeholder="Confirm your password"
-              required
-              autocomplete="new-password"
-            />
-          </div>
+          <input
+            type="password"
+            id="confirm_password"
+            name="confirm_password"
+            class="form-control"
+            placeholder="Confirm your password"
+            required
+            autocomplete="new-password"
+          />
           <div class="form-error" id="err-confirm_password"></div>
         </div>
 
-        <button type="submit" class="btn btn-primary btn-full btn-lg" id="registerSubmitBtn">
+        <button type="submit"
+                class="btn btn-primary btn-full btn-lg"
+                id="registerSubmitBtn">
           Create Account →
         </button>
 
@@ -215,7 +227,7 @@ $programmes = [
 
       <div class="auth-switch">
         Already have an account?
-        <a href="/SU-housing/login.php">Sign in</a>
+        <a href="/SU-Housing/login.php">Sign in</a>
       </div>
 
     </div>
@@ -224,31 +236,31 @@ $programmes = [
 </div>
 
 <script>
-// ── Client-side validation ──
-// NFR-02: inline field-level error messages
-
 const form = document.getElementById('registerForm');
 
 function showError(fieldId, message) {
-  const el = document.getElementById('err-' + fieldId);
+  const el    = document.getElementById('err-' + fieldId);
   const input = document.getElementById(fieldId);
-  if (el) el.textContent = message;
+  if (el)    el.textContent = message;
   if (input) input.classList.add('is-error');
 }
 
 function clearError(fieldId) {
-  const el = document.getElementById('err-' + fieldId);
+  const el    = document.getElementById('err-' + fieldId);
   const input = document.getElementById(fieldId);
-  if (el) el.textContent = '';
+  if (el)    el.textContent = '';
   if (input) input.classList.remove('is-error');
 }
 
-// Clear errors on input
-['full_name','admission_no','programme','password','confirm_password']
+['full_name', 'admission_no', 'programme', 'password', 'confirm_password']
   .forEach(id => {
     const el = document.getElementById(id);
     if (el) el.addEventListener('input', () => clearError(id));
   });
+
+document.querySelectorAll('input[name="gender"]').forEach(el => {
+  el.addEventListener('change', () => clearError('gender'));
+});
 
 form.addEventListener('submit', async function(e) {
   e.preventDefault();
@@ -269,13 +281,20 @@ form.addEventListener('submit', async function(e) {
     valid = false;
   }
 
-  // Admission number — must be digits only, 5-8 chars
+  // Admission number
   const admNo = document.getElementById('admission_no').value.trim();
   if (!admNo) {
     showError('admission_no', 'Admission number is required.');
     valid = false;
   } else if (!/^\d{5,8}$/.test(admNo)) {
     showError('admission_no', 'Must be a valid admission number (e.g. 6 digits).');
+    valid = false;
+  }
+
+  // Gender
+  const genderEl = document.querySelector('input[name="gender"]:checked');
+  if (!genderEl) {
+    showError('gender', 'Please select your gender.');
     valid = false;
   }
 
@@ -286,14 +305,14 @@ form.addEventListener('submit', async function(e) {
     valid = false;
   }
 
-  // Password length
+  // Password
   const pw = document.getElementById('password').value;
   if (pw.length < 8) {
     showError('password', 'Password must be at least 8 characters.');
     valid = false;
   }
 
-  // Confirm password match
+  // Confirm password
   const cpw = document.getElementById('confirm_password').value;
   if (pw !== cpw) {
     showError('confirm_password', 'Passwords do not match.');
@@ -306,16 +325,15 @@ form.addEventListener('submit', async function(e) {
   btn.textContent = 'Creating account…';
 
   try {
-    // NOTE: keys below are camelCase to match api/auth/register.php exactly
-    // (fullName, admissionNumber, confirmPassword) — do not change to snake_case.
     const response = await fetch('/SU-Housing/api/auth/register.php', {
-      method: 'POST',
+      method:  'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        fullName: name,
+        fullName:        name,
         admissionNumber: admNo,
-        programme: prog,
-        password: pw,
+        gender:          genderEl.value,
+        programme:       prog,
+        password:        pw,
         confirmPassword: cpw,
       }),
     });
