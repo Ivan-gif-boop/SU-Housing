@@ -19,30 +19,30 @@ $footerSubtext = $userRole === 'admin'
 // ── Nav structure ──
 $studentNav = [
   'Overview' => [
-    ['icon' => '⊞', 'label' => 'Dashboard', 'href' => BASE_PATH . '/student/dashboard.php', 'key' => 'dashboard'],
+    ['label' => 'Dashboard', 'href' => BASE_PATH . '/student/dashboard.php', 'key' => 'dashboard'],
   ],
   'Accommodation' => [
-    ['icon' => '🔍', 'label' => 'Browse Hostels', 'href' => BASE_PATH . '/student/browse.php', 'key' => 'browse'],
+    ['label' => 'Browse Hostels', 'href' => BASE_PATH . '/student/browse.php', 'key' => 'browse'],
   ],
   'My Activity' => [
-    ['icon' => '📝', 'label' => 'My Feedback', 'href' => BASE_PATH . '/student/feedback.php', 'key' => 'feedback'],
+    ['label' => 'My Feedback', 'href' => BASE_PATH . '/student/feedback.php', 'key' => 'feedback'],
   ],
   'Account' => [
-    ['icon' => '⚙️', 'label' => 'My Preferences', 'href' => BASE_PATH . '/student/preference_profile.php', 'key' => 'preferences'],
-    ['icon' => '👤', 'label' => 'My Profile', 'href' => BASE_PATH . '/student/profile.php', 'key' => 'profile'],
+    ['label' => 'My Preferences', 'href' => BASE_PATH . '/student/preference_profile.php', 'key' => 'preferences'],
+    ['label' => 'My Profile', 'href' => BASE_PATH . '/student/profile.php', 'key' => 'profile'],
   ],
 ];
 
 $adminNav = [
   'Overview' => [
-    ['icon' => '⊞', 'label' => 'Dashboard', 'href' => BASE_PATH . '/admin/dashboard.php', 'key' => 'dashboard'],
+    ['label' => 'Dashboard', 'href' => BASE_PATH . '/admin/dashboard.php', 'key' => 'dashboard'],
   ],
   'Management' => [
-    ['icon' => '🏠', 'label' => 'Manage Listings', 'href' => BASE_PATH . '/admin/listings.php', 'key' => 'listings'],
-    ['icon' => '📋', 'label' => 'Feedback', 'href' => BASE_PATH . '/admin/feedback.php', 'key' => 'feedback'],
+    ['label' => 'Manage Listings', 'href' => BASE_PATH . '/admin/listings.php', 'key' => 'listings'],
+    ['label' => 'Feedback', 'href' => BASE_PATH . '/admin/feedback.php', 'key' => 'feedback'],
   ],
   'Account' => [
-    ['icon' => '👤', 'label' => 'Profile', 'href' => BASE_PATH . '/admin/profile.php', 'key' => 'profile'],
+    ['label' => 'Profile', 'href' => BASE_PATH . '/admin/profile.php', 'key' => 'profile'],
   ],
 ];
 
@@ -82,7 +82,6 @@ $nav = $userRole === 'admin' ? $adminNav : $studentNav;
         ?>
           <a href="<?php echo $item['href']; ?>"
              class="nav-item <?php echo $isActive ? 'active' : ''; ?>">
-            <span class="nav-icon"><?php echo $item['icon']; ?></span>
             <?php echo $item['label']; ?>
             <?php if (!empty($item['badge'])): ?>
               <span class="nav-badge"><?php echo $item['badge']; ?></span>
