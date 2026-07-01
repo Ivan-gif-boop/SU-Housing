@@ -190,7 +190,7 @@ include __DIR__ . '/../includes/sidebar.php';
       <h1 class="page-title">
         Welcome, <?php echo htmlspecialchars(
           explode(' ', $userName)[0]
-        ); ?> 👋
+        ); ?> 
       </h1>
       <p class="page-subtitle">
         SU-Housing administration dashboard.
