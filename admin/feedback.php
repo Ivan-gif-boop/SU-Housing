@@ -197,7 +197,6 @@ include __DIR__ . '/../includes/sidebar.php';
     <div id="tab-all" class="feedback-tab-content active">
       <?php if (empty($allFeedback)): ?>
         <div class="empty-state">
-          <div class="empty-icon">📋</div>
           <h3>No feedback submitted yet</h3>
           <p>Feedback from students will appear here.</p>
         </div>
@@ -214,7 +213,6 @@ include __DIR__ . '/../includes/sidebar.php';
     <div id="tab-pending" class="feedback-tab-content" style="display:none;">
       <?php if (empty($pendingFeedback)): ?>
         <div class="empty-state">
-          <div class="empty-icon">✅</div>
           <h3>All feedback classified</h3>
           <p>No pending submissions to review.</p>
         </div>
@@ -231,7 +229,6 @@ include __DIR__ . '/../includes/sidebar.php';
     <div id="tab-classified" class="feedback-tab-content" style="display:none;">
       <?php if (empty($classifiedFeedback)): ?>
         <div class="empty-state">
-          <div class="empty-icon">📋</div>
           <h3>No classified feedback yet</h3>
           <p>Classify pending submissions to see them here.</p>
         </div>

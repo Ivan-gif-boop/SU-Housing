@@ -62,7 +62,7 @@ include __DIR__ . '/../includes/sidebar.php';
       </h1>
       <div style="display:flex; align-items:center;
                   gap:10px; margin-top:6px; flex-wrap:wrap;">
-        <span class="badge badge-green">● Active</span>
+        <span class="badge badge-green">Active</span>
         <span class="tag tag-blue">
           📍 <?php echo htmlspecialchars($hostel['location']); ?>
         </span>
@@ -75,7 +75,7 @@ include __DIR__ . '/../includes/sidebar.php';
       <a href="/SU-Housing/student/feedback.php?hostelId=<?php
            echo $hostel['hostelId']; ?>"
          class="btn btn-primary">
-        📝 Submit Feedback
+        Submit Feedback
       </a>
     </div>
   </div>
@@ -188,7 +188,7 @@ include __DIR__ . '/../includes/sidebar.php';
               </div>
             </div>
             <div class="alert alert-info" style="margin-top:16px; font-size:13px;">
-              ℹ️ Contact the landlord directly to arrange a viewing.
+               Contact the landlord directly to arrange a viewing.
             </div>
           </div>
         </div>
@@ -210,7 +210,7 @@ include __DIR__ . '/../includes/sidebar.php';
             <a href="/SU-Housing/student/feedback.php?hostelId=<?php
                  echo $hostel['hostelId']; ?>"
                class="btn btn-primary" style="flex-shrink:0;">
-              📝 Submit Feedback
+              Submit Feedback
             </a>
           </div>
         </div>
@@ -231,7 +231,7 @@ include __DIR__ . '/../includes/sidebar.php';
             <a href="/SU-Housing/student/feedback.php?hostelId=<?php
                  echo $hostel['hostelId']; ?>"
                class="btn btn-primary btn-full mb-16">
-              📝 Submit Feedback
+               Submit Feedback
             </a>
             <div style="font-size:12px; color:var(--gray-400);
                          text-align:center; margin-bottom:20px;">
@@ -260,7 +260,7 @@ include __DIR__ . '/../includes/sidebar.php';
               <div class="summary-detail-item">
                 <div class="summary-detail-label">Status</div>
                 <div class="summary-detail-value">
-                  <span class="badge badge-green">● Active</span>
+                  <span class="badge badge-green">Active</span>
                 </div>
               </div>
               <div class="summary-detail-item">
@@ -274,7 +274,7 @@ include __DIR__ . '/../includes/sidebar.php';
         </div>
 
         <div class="card" style="margin-top:16px; text-align:center; padding:16px 20px;">
-          <div style="font-size:24px; margin-bottom:8px;">🏛️</div>
+          <div style="font-size:24px; margin-bottom:8px;"></div>
           <div style="font-size:13px; font-weight:600;
                        color:var(--navy); margin-bottom:4px;">
             Verified by Dean of Students

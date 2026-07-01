@@ -191,7 +191,7 @@ include __DIR__ . '/../includes/sidebar.php';
       </div>
     <?php else: ?>
       <div class="alert alert-info mb-24" style="align-items:center;">
-        <span style="font-size:18px;">💡</span>
+        <span style="font-size:18px;"></span>
         <div style="flex:1;">
           <strong>Get personalised recommendations.</strong>
           Set up your preference profile to see match percentages
@@ -223,7 +223,6 @@ include __DIR__ . '/../includes/sidebar.php';
         <div class="filter-group">
           <label class="filter-label">Search</label>
           <div class="input-wrap">
-            <span class="input-icon">🔍</span>
             <input
               type="text"
               id="filterSearch"
@@ -236,11 +235,11 @@ include __DIR__ . '/../includes/sidebar.php';
 
         <!-- Location -->
         <div class="filter-group">
-          <label class="filter-label">Neighbourhood</label>
+          <label class="filter-label">Location</label>
           <select id="filterNeighbourhood"
                   class="form-control"
                   onchange="applyFilters()">
-            <option value="">All Neighbourhoods</option>
+            <option value="">All Locations</option>
             <option value="Madaraka">Madaraka</option>
             <option value="Nairobi West">Nairobi West</option>
             <option value="Lang'ata">Lang'ata</option>
@@ -414,7 +413,6 @@ include __DIR__ . '/../includes/sidebar.php';
         <!-- Empty state -->
         <div class="empty-state" id="emptyState"
              style="display:<?php echo empty($listings) ? 'flex' : 'none'; ?>;">
-          <div class="empty-icon">🔍</div>
           <h3>No hostels found</h3>
           <p>Try adjusting your filters or search term.</p>
           <button class="btn btn-outline mt-16" onclick="clearFilters()">

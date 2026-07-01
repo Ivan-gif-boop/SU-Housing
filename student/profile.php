@@ -173,13 +173,13 @@ include __DIR__ . '/../includes/sidebar.php';
           <div class="card-body"
                style="display:flex; flex-direction:column; gap:8px; padding:16px;">
             <a href="/SU-Housing/student/browse.php" class="btn btn-outline btn-full">
-              🔍 Browse Hostels
+            Browse Hostels
             </a>
             <a href="/SU-Housing/student/preference_profile.php" class="btn btn-outline btn-full">
-              ⚙️ Edit Preferences
+            Edit Preferences
             </a>
             <a href="/SU-Housing/student/feedback.php" class="btn btn-outline btn-full">
-              📝 My Feedback
+            My Feedback
             </a>
             <hr class="divider" style="margin:4px 0;"/>
             <a href="/SU-Housing/logout.php" class="btn btn-danger btn-full">
@@ -200,7 +200,7 @@ include __DIR__ . '/../includes/sidebar.php';
         <?php endif; ?>
         <?php if ($error): ?>
           <div class="alert alert-error mb-16">
-            ⚠️ <?php echo htmlspecialchars($error); ?>
+            <?php echo htmlspecialchars($error); ?>
           </div>
         <?php endif; ?>
 

@@ -72,7 +72,7 @@ include __DIR__ . '/../includes/sidebar.php';
 
     <?php if ($isPostRegistration): ?>
       <div class="alert alert-success mb-16">
-        🎉 Account created successfully! Complete your preference
+        Account created successfully! Complete your preference
         profile below so we can recommend the best hostels for you.
       </div>
     <?php endif; ?>
@@ -98,7 +98,7 @@ include __DIR__ . '/../includes/sidebar.php';
       </div>
     <?php else: ?>
       <div class="alert alert-info mb-24" style="align-items:center;">
-        <span style="font-size:18px;">💡</span>
+        <span style="font-size:18px;"></span>
         <div style="flex:1;">
           <strong>No preference profile set.</strong>
           Hostels are currently shown in default order (most recently added first).
@@ -122,7 +122,7 @@ include __DIR__ . '/../includes/sidebar.php';
             and match percentages will no longer appear.
           </p>
           <div class="alert alert-warning" style="margin-top:16px; font-size:13px;">
-            ⚠️ You can set up a new profile at any time by filling in
+            You can set up a new profile at any time by filling in
             the form below again.
           </div>
         </div>

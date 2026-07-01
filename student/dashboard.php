@@ -179,7 +179,7 @@ include __DIR__ . '/../includes/sidebar.php';
     <div class="page-actions">
       <a href="/SU-Housing/student/browse.php"
          class="btn btn-primary">
-        🔍 Browse Hostels
+        Browse Hostels
       </a>
     </div>
   </div>
@@ -189,7 +189,6 @@ include __DIR__ . '/../includes/sidebar.php';
     <!-- ── Preference profile nudge banner ── -->
     <?php if (!$hasProfile): ?>
       <div class="alert alert-info mb-24" style="align-items:center;">
-        <span style="font-size:20px;">⚙️</span>
         <div style="flex:1;">
           <strong>Set up your preference profile</strong> to get
           personalised hostel recommendations ranked by match percentage.
@@ -213,7 +212,6 @@ include __DIR__ . '/../includes/sidebar.php';
       </div>
 
       <div class="stat-card animate-fade-up delay-2">
-        <div class="stat-icon green">📝</div>
         <div>
           <div class="stat-num"><?php echo $myFeedbackCount; ?></div>
           <div class="stat-label">My Feedback</div>
@@ -221,7 +219,6 @@ include __DIR__ . '/../includes/sidebar.php';
       </div>
 
       <div class="stat-card animate-fade-up delay-3">
-        <div class="stat-icon blue">⚙️</div>
         <div>
           <div class="stat-num"><?php echo $hasProfile ? '✓' : '—'; ?></div>
           <div class="stat-label">Preference Profile</div>
@@ -234,7 +231,7 @@ include __DIR__ . '/../includes/sidebar.php';
     <?php if ($hasProfile && !empty($recommendations)): ?>
       <div class="section-header">
         <div>
-          <h2 class="section-title">🎯 Top Recommendations For You</h2>
+          <h2 class="section-title">Top Recommendations For You</h2>
           <p class="section-subtitle">
             Ranked by how well they match your preference profile
           </p>
@@ -366,25 +363,21 @@ include __DIR__ . '/../includes/sidebar.php';
     <div class="quick-actions-grid">
 
       <a href="/SU-Housing/student/browse.php" class="quick-action-card">
-        <div class="qa-icon amber">🔍</div>
         <div class="qa-label">Browse Hostels</div>
         <div class="qa-desc">Search and filter all verified listings</div>
       </a>
 
       <a href="/SU-Housing/student/feedback.php" class="quick-action-card">
-        <div class="qa-icon green">📝</div>
         <div class="qa-label">My Feedback</div>
         <div class="qa-desc">View feedback you've submitted</div>
       </a>
 
       <a href="/SU-Housing/student/preference_profile.php" class="quick-action-card">
-        <div class="qa-icon blue">⚙️</div>
         <div class="qa-label">My Preferences</div>
         <div class="qa-desc">Update your accommodation preferences</div>
       </a>
 
       <a href="/SU-Housing/student/profile.php" class="quick-action-card">
-        <div class="qa-icon navy">👤</div>
         <div class="qa-label">My Profile</div>
         <div class="qa-desc">View and edit your account details</div>
       </a>

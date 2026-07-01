@@ -79,7 +79,7 @@ include __DIR__ . '/../includes/sidebar.php';
             <?php if (!$assignedHostelId): ?>
               <!-- Student not assigned to any hostel — block form -->
               <div class="alert alert-info mb-16">
-                ℹ️ <strong>No hostel assigned.</strong> Feedback can only be
+                <strong>No hostel assigned.</strong> Feedback can only be
                 submitted for a hostel you are currently occupying. Your hostel
                 assignment is recorded by the Office of the Dean of Students
                 when your accommodation is confirmed. Please contact the Dean
@@ -89,7 +89,7 @@ include __DIR__ . '/../includes/sidebar.php';
             <?php else: ?>
               <!-- Student is assigned — show form -->
               <div class="alert alert-success mb-16">
-                🏠 You are currently assigned to
+                You are currently assigned to
                 <strong><?php echo htmlspecialchars($assignedHostelName); ?></strong>.
                 You may submit feedback for this hostel only.
               </div>
@@ -147,7 +147,6 @@ include __DIR__ . '/../includes/sidebar.php';
 
         <?php if (empty($myFeedback)): ?>
           <div class="empty-state">
-            <div class="empty-icon">📝</div>
             <h3>No feedback yet</h3>
             <p>Submit your first feedback report using the form on the left.</p>
           </div>
@@ -257,13 +256,13 @@ form?.addEventListener('submit', async function(e) {
         } else {
             formAlert.style.display = 'flex';
             formAlert.className     = 'alert alert-error mb-16';
-            formAlert.textContent   = '⚠️ ' + (data.error || 'Failed to submit feedback.');
+            formAlert.textContent   = (data.error || 'Failed to submit feedback.');
         }
 
     } catch (err) {
         formAlert.style.display = 'flex';
         formAlert.className     = 'alert alert-error mb-16';
-        formAlert.textContent   = '⚠️ Network error. Please try again.';
+        formAlert.textContent   = 'Network error. Please try again.';
         console.error('Feedback error:', err);
     }
 });

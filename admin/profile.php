@@ -153,13 +153,13 @@ include __DIR__ . '/../includes/sidebar.php';
           <div class="card-body"
                style="display:flex; flex-direction:column; gap:8px; padding:16px;">
             <a href="/SU-Housing/admin/listings.php" class="btn btn-outline btn-full">
-              🏠 Manage Listings
+             Manage Listings
             </a>
             <a href="/SU-Housing/admin/feedback.php" class="btn btn-outline btn-full">
-              📋 Review Feedback
+              Review Feedback
             </a>
             <a href="/SU-Housing/admin/dashboard.php" class="btn btn-outline btn-full">
-              📊 View Analytics
+              View Analytics
             </a>
             <hr class="divider" style="margin:4px 0;"/>
             <a href="/SU-Housing/logout.php" class="btn btn-danger btn-full">
@@ -180,7 +180,7 @@ include __DIR__ . '/../includes/sidebar.php';
         <?php endif; ?>
         <?php if ($error): ?>
           <div class="alert alert-error mb-16">
-            ⚠️ <?php echo htmlspecialchars($error); ?>
+             <?php echo htmlspecialchars($error); ?>
           </div>
         <?php endif; ?>
 
