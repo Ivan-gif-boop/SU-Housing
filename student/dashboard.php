@@ -170,7 +170,7 @@ include __DIR__ . '/../includes/sidebar.php';
       <h1 class="page-title">
         Welcome back, <?php echo htmlspecialchars(
           explode(' ', $userName)[0]
-        ); ?> 👋
+        ); ?>
       </h1>
       <p class="page-subtitle">
         Here's what's happening with your accommodation search.
@@ -204,7 +204,6 @@ include __DIR__ . '/../includes/sidebar.php';
     <div class="stats-grid">
 
       <div class="stat-card animate-fade-up delay-1">
-        <div class="stat-icon amber">🏠</div>
         <div>
           <div class="stat-num"><?php echo $totalListings; ?></div>
           <div class="stat-label">Verified Hostels</div>
