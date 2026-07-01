@@ -14,7 +14,6 @@ $db = getDB();
 
 $studentId = currentStudentId();
 $userName  = $_SESSION['fullName'] ?? 'Student';
-$admissionNumber = $_SESSION['admissionNumber'] ?? null;
 
 // ── Check if student has a preference profile (FR-09) ──
 $profStmt = $db->prepare(
@@ -33,10 +32,13 @@ if (!empty($_GET['q'])) {
     $like         = '%' . $_GET['q'] . '%';
     $params       = array_merge($params, [$like, $like, $like]);
 }
+
+// Location filter — matches against physicalAddress (no neighbourhood column in schema)
 if (!empty($_GET['location'])) {
-    $conditions[] = 'l.neighbourhood LIKE ?';
+    $conditions[] = 'l.physicalAddress LIKE ?';
     $params[]     = '%' . $_GET['location'] . '%';
 }
+
 if (!empty($_GET['priceMin'])) {
     $conditions[] = 'l.priceMax >= ?';
     $params[]     = (float) $_GET['priceMin'];
@@ -56,29 +58,48 @@ if (!empty($_GET['amenities'])) {
     }
 }
 
+// ── Hard gender eligibility filter (FR-06) ──
+// A student should never see hostels they are ineligible for based on
+// gender policy — this is a hard filter, not a soft scoring signal.
+// Gender is read directly from students.gender, consistent with api/listings.php.
+$genderStmt = $db->prepare('SELECT gender FROM students WHERE studentId = ?');
+$genderStmt->execute([$studentId]);
+$studentGender = $genderStmt->fetchColumn();
+
+if ($studentGender === 'male') {
+    // Male student: show male_only and mixed, exclude female_only
+    $conditions[] = "l.genderPolicy IN ('male_only', 'mixed')";
+} elseif ($studentGender === 'female') {
+    // Female student: show female_only and mixed, exclude male_only
+    $conditions[] = "l.genderPolicy IN ('female_only', 'mixed')";
+}
+// If gender not set, no filter applied
+
 $where = implode(' AND ', $conditions);
 $stmt  = $db->prepare(
-    "SELECT hostelId, hostelName, physicalAddress,
-            priceMin, priceMax, roomType, amenities, roomsAvailable,
-            latitude, longitude
+    "SELECT l.hostelId, l.hostelName, l.physicalAddress, l.description,
+            l.priceMin, l.priceMax, l.roomType, l.amenities,
+            l.roomsAvailable, l.genderPolicy, l.environmentType,
+            l.curfewPolicy, l.latitude, l.longitude
      FROM hostel_listings l
      WHERE $where
-     ORDER BY createdAt DESC"
+     ORDER BY l.createdAt DESC"
 );
 $stmt->execute($params);
 $listings = $stmt->fetchAll();
 
-// Decode amenities + score against profile (FR-09)
+// ── Decode amenities + score against profile (FR-09) ──
+// Full 6-dimension scoring: budget, room type, environment type,
+// gender policy, curfew policy, preferred location
 foreach ($listings as &$h) {
     $h['amenities']  = json_decode($h['amenities'], true) ?? [];
-    // 'physicalAddress' alias so browse.js data-attribute works
-    $h['physicalAddress'] = $h['physicalAddress'];
     $h['matchScore'] = 0;
 
     if ($profile) {
         $score    = 0;
         $maxScore = 0;
 
+        // Budget fit
         if ($profile['budgetMin'] !== null && $profile['budgetMax'] !== null) {
             $maxScore++;
             if ($h['priceMin'] <= $profile['budgetMax'] &&
@@ -86,13 +107,37 @@ foreach ($listings as &$h) {
                 $score++;
             }
         }
-        if ($profile['roomTypePreference'] !== null) {
+
+        // Room type match
+        if (!empty($profile['roomTypePreference'])) {
             $maxScore++;
             if ($h['roomType'] === $profile['roomTypePreference']) $score++;
         }
-        if ($profile['genderPreference'] !== null && isset($h['genderPolicy'])) {
+
+        // Environment type match
+        if (!empty($profile['environmentType'])) {
             $maxScore++;
-            if ($h['genderPolicy'] === $profile['genderPreference']) $score++;
+            if (($h['environmentType'] ?? '') === $profile['environmentType']) $score++;
+        }
+
+        // Gender policy match (soft score — hard filter already applied above)
+        if (!empty($profile['genderPreference'])) {
+            $maxScore++;
+            if (($h['genderPolicy'] ?? '') === $profile['genderPreference']) $score++;
+        }
+
+        // Curfew policy match
+        if (!empty($profile['curfewPreference'])) {
+            $maxScore++;
+            if (($h['curfewPolicy'] ?? '') === $profile['curfewPreference']) $score++;
+        }
+
+        // Preferred location match (physicalAddress contains the location string)
+        if (!empty($profile['preferredLocation'])) {
+            $maxScore++;
+            if (stripos($h['physicalAddress'], $profile['preferredLocation']) !== false) {
+                $score++;
+            }
         }
 
         $h['matchScore'] = $maxScore > 0
@@ -189,25 +234,18 @@ include __DIR__ . '/../includes/sidebar.php';
           </div>
         </div>
 
-        <!-- Neighbourhood / Location -->
+        <!-- Location -->
         <div class="filter-group">
           <label class="filter-label">Neighbourhood</label>
           <select id="filterNeighbourhood"
                   class="form-control"
                   onchange="applyFilters()">
             <option value="">All Neighbourhoods</option>
-            <?php
-            // Build neighbourhood options dynamically from DB results
-            $neighbourhoods = array_unique(
-                array_column($listings, 'neighbourhood')
-            );
-            sort($neighbourhoods);
-            foreach ($neighbourhoods as $nbh):
-            ?>
-              <option value="<?php echo htmlspecialchars($nbh); ?>">
-                <?php echo htmlspecialchars($nbh); ?>
-              </option>
-            <?php endforeach; ?>
+            <option value="Madaraka">Madaraka</option>
+            <option value="Nairobi West">Nairobi West</option>
+            <option value="Lang'ata">Lang'ata</option>
+            <option value="South B">South B</option>
+            <option value="South C">South C</option>
           </select>
         </div>
 
@@ -312,7 +350,7 @@ include __DIR__ . '/../includes/sidebar.php';
           <?php foreach ($listings as $h): ?>
             <div class="hostel-card animate-fade-up"
                  data-name="<?php echo strtolower(htmlspecialchars($h['hostelName'])); ?>"
-                 data-physical-address="<?php echo htmlspecialchars($h['physicalAddress']); ?>"
+                 data-physical-address="<?php echo strtolower(htmlspecialchars($h['physicalAddress'])); ?>"
                  data-price-min="<?php echo $h['priceMin']; ?>"
                  data-price-max="<?php echo $h['priceMax']; ?>"
                  data-room-type="<?php echo $h['roomType']; ?>"
