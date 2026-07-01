@@ -34,7 +34,7 @@
     <?php elseif ($fb['sentiment'] === 'negative'): ?>
       <span class="badge badge-red">✗ Negative</span>
     <?php else: ?>
-      <span class="badge badge-amber">⏳ Pending</span>
+      <span class="badge badge-amber"> Pending</span>
     <?php endif; ?>
   </div>
 
