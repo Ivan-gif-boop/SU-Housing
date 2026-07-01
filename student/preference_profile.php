@@ -15,7 +15,8 @@ $stmt = $db->prepare(
     'SELECT * FROM student_preference_profiles WHERE studentId = ?'
 );
 $stmt->execute([$studentId]);
-$profile = $stmt->fetch() ?: [];
+$profile    = $stmt->fetch() ?: [];
+$hasProfile = !empty($profile);
 
 $p = [
     'studyHabits'         => $profile['studyHabits']        ?? '',
@@ -26,12 +27,14 @@ $p = [
     'budgetMin'           => $profile['budgetMin']          ?? '',
     'budgetMax'           => $profile['budgetMax']          ?? '',
     'preferredLocation'   => $profile['preferredLocation']  ?? '',
+    'environmentType'     => $profile['environmentType']    ?? '',
+    'curfewPreference'    => $profile['curfewPreference']   ?? '',
 ];
 
-$pageTitle  = 'Preference Profile';
-$activePage = 'profile';
-$userRole   = 'student';
-$userName   = $_SESSION['fullName'] ?? 'Student';
+$pageTitle       = 'Preference Profile';
+$activePage      = 'preferences';
+$userRole        = 'student';
+$userName        = $_SESSION['fullName'] ?? 'Student';
 $admissionNumber = $_SESSION['admissionNumber'] ?? null;
 
 $isPostRegistration = isset($_GET['new']) && $_GET['new'] === '1';
@@ -50,7 +53,9 @@ include __DIR__ . '/../includes/sidebar.php';
           <a href="/SU-Housing/student/profile.php">Account</a> › Edit Preferences
         <?php endif; ?>
       </div>
-      <h1 class="page-title">Complete Your Preference Profile</h1>
+      <h1 class="page-title">
+        <?php echo $hasProfile ? 'Your Preference Profile' : 'Set Up Your Preference Profile'; ?>
+      </h1>
       <p class="page-subtitle">
         Help us match you with the best hostel options. All fields are optional.
       </p>
@@ -71,6 +76,66 @@ include __DIR__ . '/../includes/sidebar.php';
         profile below so we can recommend the best hostels for you.
       </div>
     <?php endif; ?>
+
+    <!-- ── Profile status banner ── -->
+    <?php if ($hasProfile): ?>
+      <div class="alert alert-success mb-24" style="align-items:center;">
+        <span style="font-size:18px;">✓</span>
+        <div style="flex:1;">
+          <strong>Preference profile is active.</strong>
+          Hostel listings on your dashboard and browse page are currently
+          ranked by how well they match your preferences.
+          Your profile was last updated
+          <?php echo date('j M Y', strtotime($profile['updatedAt'])); ?>.
+        </div>
+        <button
+          class="btn btn-danger btn-sm"
+          style="flex-shrink:0;"
+          onclick="confirmResetProfile()"
+        >
+          Reset Profile
+        </button>
+      </div>
+    <?php else: ?>
+      <div class="alert alert-info mb-24" style="align-items:center;">
+        <span style="font-size:18px;">💡</span>
+        <div style="flex:1;">
+          <strong>No preference profile set.</strong>
+          Hostels are currently shown in default order (most recently added first).
+          Fill in the form below to get personalised recommendations ranked
+          by match percentage.
+        </div>
+      </div>
+    <?php endif; ?>
+
+    <!-- Reset confirmation modal -->
+    <div class="modal-overlay" id="resetModal">
+      <div class="modal" style="max-width:420px;">
+        <div class="modal-header">
+          <span class="modal-title">Reset Preference Profile</span>
+          <button class="modal-close" onclick="closeModal('resetModal')">✕</button>
+        </div>
+        <div class="modal-body">
+          <p style="font-size:15px; color:var(--gray-600); line-height:1.6;">
+            This will delete your preference profile. Hostel listings
+            will return to default order (most recently added first)
+            and match percentages will no longer appear.
+          </p>
+          <div class="alert alert-warning" style="margin-top:16px; font-size:13px;">
+            ⚠️ You can set up a new profile at any time by filling in
+            the form below again.
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline" onclick="closeModal('resetModal')">
+            Cancel
+          </button>
+          <button class="btn btn-danger" id="confirmResetBtn" onclick="executeReset()">
+            Yes, Reset Profile
+          </button>
+        </div>
+      </div>
+    </div>
 
     <form action="#" method="POST" id="preferenceForm">
 
@@ -197,6 +262,42 @@ include __DIR__ . '/../includes/sidebar.php';
               </option>
             </select>
           </div>
+
+          <div class="pref-field" style="margin-top:16px;">
+            <div class="pref-label">Environment type</div>
+            <select name="environmentType" class="form-control pref-select">
+              <option value="" <?php echo $p['environmentType'] === '' ? 'selected' : ''; ?>>
+                No preference
+              </option>
+              <option value="quiet" <?php echo $p['environmentType'] === 'quiet' ? 'selected' : ''; ?>>
+                Quiet
+              </option>
+              <option value="moderate" <?php echo $p['environmentType'] === 'moderate' ? 'selected' : ''; ?>>
+                Moderate
+              </option>
+              <option value="lively" <?php echo $p['environmentType'] === 'lively' ? 'selected' : ''; ?>>
+                Lively
+              </option>
+            </select>
+          </div>
+
+          <div class="pref-field" style="margin-top:16px;">
+            <div class="pref-label">Curfew preference</div>
+            <select name="curfewPreference" class="form-control pref-select">
+              <option value="" <?php echo $p['curfewPreference'] === '' ? 'selected' : ''; ?>>
+                No preference
+              </option>
+              <option value="before_10pm" <?php echo $p['curfewPreference'] === 'before_10pm' ? 'selected' : ''; ?>>
+                Before 10pm
+              </option>
+              <option value="before_midnight" <?php echo $p['curfewPreference'] === 'before_midnight' ? 'selected' : ''; ?>>
+                Before Midnight
+              </option>
+              <option value="no_curfew" <?php echo $p['curfewPreference'] === 'no_curfew' ? 'selected' : ''; ?>>
+                No Curfew
+              </option>
+            </select>
+          </div>
         </div>
       </div>
 
@@ -239,6 +340,9 @@ include __DIR__ . '/../includes/sidebar.php';
               <option value="Madaraka" <?php echo $p['preferredLocation'] === 'Madaraka' ? 'selected' : ''; ?>>
                 Madaraka
               </option>
+              <option value="South C" <?php echo $p['preferredLocation'] === 'South C' ? 'selected' : ''; ?>>
+                South C
+              </option>
               <option value="Nairobi West" <?php echo $p['preferredLocation'] === 'Nairobi West' ? 'selected' : ''; ?>>
                 Nairobi West
               </option>
@@ -248,8 +352,8 @@ include __DIR__ . '/../includes/sidebar.php';
               <option value="South B" <?php echo $p['preferredLocation'] === 'South B' ? 'selected' : ''; ?>>
                 South B
               </option>
-              <option value="South C" <?php echo $p['preferredLocation'] === 'South C' ? 'selected' : ''; ?>>
-                South C
+              <option value="Siwaka" <?php echo $p['preferredLocation'] === 'Siwaka' ? 'selected' : ''; ?>>
+                Siwaka
               </option>
             </select>
           </div>
@@ -259,11 +363,11 @@ include __DIR__ . '/../includes/sidebar.php';
       <!-- ══ Form Actions ══ -->
       <div class="pref-actions">
         <button type="submit" class="btn btn-primary btn-lg">
-          Save Profile
+          <?php echo $hasProfile ? 'Update Profile' : 'Save Profile'; ?>
         </button>
         <a href="/SU-Housing/student/browse.php"
-           class="btn btn-ghost btn-lg" id="skipBtn">
-          Skip for Now
+           class="btn btn-ghost btn-lg">
+          <?php echo $hasProfile ? 'View Listings' : 'Skip for Now'; ?>
         </a>
       </div>
 
@@ -274,6 +378,7 @@ include __DIR__ . '/../includes/sidebar.php';
 <?php include __DIR__ . '/../includes/footer.php'; ?>
 
 <script>
+// ── Save / update profile ──
 document.getElementById('preferenceForm')
   .addEventListener('submit', async function(e) {
     e.preventDefault();
@@ -283,43 +388,82 @@ document.getElementById('preferenceForm')
     const errBudget = document.getElementById('err-budget');
 
     if (min && max && max < min) {
-        errBudget.textContent = 'Maximum budget must be greater than minimum budget.';
-        return;
+      errBudget.textContent = 'Maximum budget must be greater than minimum budget.';
+      return;
     }
     errBudget.textContent = '';
 
     const form = new FormData(this);
 
     const payload = {
-        studyHabits:        form.get('studyHabits')          || null,
-        sleepSchedule:      form.get('sleepSchedule')        || null,
-        noiseTolerance:     form.get('noiseTolerance')       || null,
-        genderPreference:   form.get('genderPreference')     || null,
-        roomTypePreference: form.get('roomTypePreference')   || null,
-        budgetMin:          form.get('budgetMin') ? parseFloat(form.get('budgetMin')) : null,
-        budgetMax:          form.get('budgetMax') ? parseFloat(form.get('budgetMax')) : null,
-        preferredLocation:  form.get('preferredLocation')    || null,
+      studyHabits:        form.get('studyHabits')        || null,
+      sleepSchedule:      form.get('sleepSchedule')      || null,
+      noiseTolerance:     form.get('noiseTolerance')     || null,
+      genderPreference:   form.get('genderPreference')   || null,
+      roomTypePreference: form.get('roomTypePreference') || null,
+      environmentType:    form.get('environmentType')    || null,
+      curfewPreference:   form.get('curfewPreference')   || null,
+      budgetMin:          form.get('budgetMin') ? parseFloat(form.get('budgetMin')) : null,
+      budgetMax:          form.get('budgetMax') ? parseFloat(form.get('budgetMax')) : null,
+      preferredLocation:  form.get('preferredLocation')  || null,
     };
 
     try {
-        const response = await fetch('/SU-Housing/api/profiles.php', {
-            method: 'PUT',
-            credentials: 'include',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
+      const response = await fetch('/SU-Housing/api/profiles.php', {
+        method:      'PUT',
+        credentials: 'include',
+        headers:     { 'Content-Type': 'application/json' },
+        body:        JSON.stringify(payload),
+      });
 
-        const data = await response.json();
+      const data = await response.json();
 
-        if (response.ok) {
-            window.location.href = '/SU-Housing/student/browse.php';
-        } else {
-            errBudget.textContent = data.error || 'Failed to save profile. Please try again.';
-        }
+      if (response.ok) {
+        window.location.href = '/SU-Housing/student/browse.php';
+      } else {
+        errBudget.textContent = data.error || 'Failed to save profile. Please try again.';
+      }
 
     } catch (err) {
-        errBudget.textContent = 'Network error. Please try again.';
-        console.error('Profile save error:', err);
+      errBudget.textContent = 'Network error. Please try again.';
     }
-});
+  });
+
+// ── Reset profile ──
+function confirmResetProfile() {
+  document.getElementById('resetModal').classList.add('open');
+}
+
+async function executeReset() {
+  const btn = document.getElementById('confirmResetBtn');
+  btn.disabled    = true;
+  btn.textContent = 'Resetting…';
+
+  try {
+    const response = await fetch('/SU-Housing/api/profiles.php', {
+      method:      'DELETE',
+      credentials: 'include',
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      // Redirect back to same page — will now show "no profile" state
+      window.location.href = '/SU-Housing/student/preference_profile.php';
+    } else {
+      alert(data.error || 'Failed to reset profile.');
+      btn.disabled    = false;
+      btn.textContent = 'Yes, Reset Profile';
+    }
+
+  } catch (err) {
+    alert('Network error. Please try again.');
+    btn.disabled    = false;
+    btn.textContent = 'Yes, Reset Profile';
+  }
+}
+
+function closeModal(id) {
+  document.getElementById(id)?.classList.remove('open');
+}
 </script>

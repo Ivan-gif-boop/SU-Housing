@@ -71,7 +71,7 @@ include __DIR__ . '/../includes/sidebar.php';
       <h1 class="page-title">Student Feedback</h1>
       <p class="page-subtitle">
         Review and classify feedback submitted by students
-        who have occupied listed hostels (FR-11).
+        who have occupied listed hostels.
       </p>
     </div>
   </div>

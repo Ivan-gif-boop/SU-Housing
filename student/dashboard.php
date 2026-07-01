@@ -12,10 +12,10 @@ $db = getDB();
 
 $studentId = currentStudentId();
 
+// ── Real data from DB ──
 
 // Student name from session (set by login)
 $userName = $_SESSION['fullName'] ?? 'Student';
-$admissionNumber = $_SESSION['admissionNumber'] ?? null;
 
 // Total active listings
 $totalListings = (int) $db->query(
@@ -29,29 +29,130 @@ $myFeedbackStmt = $db->prepare(
 $myFeedbackStmt->execute([$studentId]);
 $myFeedbackCount = (int) $myFeedbackStmt->fetchColumn();
 
-// Check if student has a preference profile
+// Check if student has a preference profile + fetch it for scoring
 $profStmt = $db->prepare(
-    'SELECT profileId FROM student_preference_profiles WHERE studentId = ?'
+    'SELECT * FROM student_preference_profiles WHERE studentId = ?'
 );
 $profStmt->execute([$studentId]);
-$hasProfile = (bool) $profStmt->fetch();
+$profile    = $profStmt->fetch();
+$hasProfile = (bool) $profile;
 
-// Featured listings — latest 3 active
+// Student's gender for hard-filter
+$genderStmt = $db->prepare('SELECT gender FROM students WHERE studentId = ?');
+$genderStmt->execute([$studentId]);
+$studentGender = $genderStmt->fetchColumn();
+
+// Build gender filter condition
+$genderFilter = '';
+$genderParams = [];
+if ($studentGender === 'male') {
+    $genderFilter = "AND genderPolicy IN ('male_only', 'mixed')";
+} elseif ($studentGender === 'female') {
+    $genderFilter = "AND genderPolicy IN ('female_only', 'mixed')";
+}
+
+// Top 3 recommended listings — scored against profile if exists,
+// otherwise just the 3 most recently added
+$recommendations = [];
+if ($hasProfile) {
+    // Fetch all eligible active listings and score them
+    $allStmt = $db->query(
+        "SELECT hostelId, hostelName, physicalAddress, priceMin, priceMax,
+                roomType, amenities, genderPolicy, environmentType, curfewPolicy
+         FROM hostel_listings
+         WHERE isActive = 1 $genderFilter
+         ORDER BY createdAt DESC"
+    );
+    $allListings = $allStmt->fetchAll();
+
+    foreach ($allListings as &$l) {
+        $l['amenities']  = json_decode($l['amenities'], true) ?? [];
+        $l['matchScore'] = scoreListingAgainstProfile($l, $profile);
+    }
+    unset($l);
+
+    usort($allListings, fn($a, $b) => $b['matchScore'] <=> $a['matchScore']);
+    $recommendations = array_slice($allListings, 0, 3);
+}
+
+// Featured listings — latest 3 active (shown when no profile)
 $featuredStmt = $db->query(
-    'SELECT hostelId, hostelName, physicalAddress, priceMin, priceMax,
+    "SELECT hostelId, hostelName, physicalAddress, priceMin, priceMax,
             roomType, amenities
      FROM hostel_listings
-     WHERE isActive = 1
+     WHERE isActive = 1 $genderFilter
      ORDER BY createdAt DESC
-     LIMIT 3'
+     LIMIT 3"
 );
 $featured = $featuredStmt->fetchAll();
 
-// Decode amenities JSON for each listing
 foreach ($featured as &$h) {
     $h['amenities'] = json_decode($h['amenities'], true) ?? [];
 }
 unset($h);
+
+// Scoring function — mirrors api/listings.php logic
+function scoreListingAgainstProfile(array $listing, array $profile): int {
+    $score = 0; $maxScore = 0;
+
+    if ($profile['budgetMin'] !== null && $profile['budgetMax'] !== null) {
+        $maxScore++;
+        if ($listing['priceMin'] <= $profile['budgetMax'] &&
+            $listing['priceMax'] >= $profile['budgetMin']) $score++;
+    }
+    if (!empty($profile['roomTypePreference'])) {
+        $maxScore++;
+        if ($listing['roomType'] === $profile['roomTypePreference']) $score++;
+    }
+    if (!empty($profile['genderPreference'])) {
+        $maxScore++;
+        if ($listing['genderPolicy'] === $profile['genderPreference']) $score++;
+    }
+    if (!empty($profile['preferredLocation'])) {
+        $maxScore++;
+        if (stripos($listing['physicalAddress'], $profile['preferredLocation']) !== false) $score++;
+    }
+    if (!empty($profile['noiseTolerance'])) {
+        $maxScore++;
+        if ($listing['environmentType'] === $profile['noiseTolerance']) $score++;
+    }
+    if (!empty($profile['studyHabits'])) {
+        $maxScore++;
+        switch ($profile['studyHabits']) {
+            case 'early_riser':
+                if ($listing['environmentType'] === 'quiet' &&
+                    $listing['curfewPolicy'] === 'before_10pm') $score++;
+                break;
+            case 'night_owl':
+                if ($listing['curfewPolicy'] === 'no_curfew') $score++;
+                break;
+            case 'flexible': $score++; break;
+        }
+    }
+    if (!empty($profile['sleepSchedule'])) {
+        $maxScore++;
+        switch ($profile['sleepSchedule']) {
+            case 'before_10pm':
+                if ($listing['curfewPolicy'] === 'before_10pm') $score++;
+                break;
+            case '10pm_12am':
+                if (in_array($listing['curfewPolicy'], ['before_10pm','before_midnight'])) $score++;
+                break;
+            case 'after_midnight':
+                if ($listing['curfewPolicy'] === 'no_curfew') $score++;
+                break;
+        }
+    }
+    if (!empty($profile['curfewPreference'])) {
+        $maxScore++;
+        if ($listing['curfewPolicy'] === $profile['curfewPreference']) $score++;
+    }
+    if (!empty($profile['environmentType'])) {
+        $maxScore++;
+        if ($listing['environmentType'] === $profile['environmentType']) $score++;
+    }
+    return $maxScore > 0 ? (int) round(($score / $maxScore) * 100) : 0;
+}
 
 // ── Page meta ──
 $pageTitle  = 'Dashboard';
@@ -78,7 +179,7 @@ include __DIR__ . '/../includes/sidebar.php';
     <div class="page-actions">
       <a href="/SU-Housing/student/browse.php"
          class="btn btn-primary">
-         Browse Hostels
+        🔍 Browse Hostels
       </a>
     </div>
   </div>
@@ -129,8 +230,68 @@ include __DIR__ . '/../includes/sidebar.php';
 
     </div>
 
-    <!-- ── Featured listings ── -->
-    <div class="section-header">
+    <!-- ── Top Recommendations (shown only when profile exists) ── -->
+    <?php if ($hasProfile && !empty($recommendations)): ?>
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">🎯 Top Recommendations For You</h2>
+          <p class="section-subtitle">
+            Ranked by how well they match your preference profile
+          </p>
+        </div>
+        <a href="/SU-Housing/student/browse.php" class="btn btn-ghost">
+          See all →
+        </a>
+      </div>
+
+      <div class="hostel-grid">
+        <?php foreach ($recommendations as $h): ?>
+          <div class="hostel-card animate-fade-up">
+
+            <div class="hostel-card-img">
+              <div class="hostel-card-img-inner">
+                <span class="hostel-card-emoji">🏠</span>
+              </div>
+              <span class="match-badge"><?php echo $h['matchScore']; ?>% match</span>
+              <span class="hostel-price-badge">
+                KES <?php echo number_format($h['priceMin']); ?>
+                – <?php echo number_format($h['priceMax']); ?>/mo
+              </span>
+            </div>
+
+            <div class="hostel-card-body">
+              <h3 class="hostel-name">
+                <?php echo htmlspecialchars($h['hostelName']); ?>
+              </h3>
+              <div class="hostel-location">
+                📍 <?php echo htmlspecialchars($h['physicalAddress']); ?>
+              </div>
+              <div class="hostel-amenities">
+                <?php foreach (array_slice($h['amenities'], 0, 3) as $amenity): ?>
+                  <span class="tag tag-blue">
+                    <?php echo htmlspecialchars($amenity); ?>
+                  </span>
+                <?php endforeach; ?>
+              </div>
+            </div>
+
+            <div class="hostel-card-footer">
+              <span class="tag tag-gray">
+                <?php echo ucfirst($h['roomType']); ?>
+              </span>
+              <a href="/SU-Housing/student/detail.php?id=<?php echo $h['hostelId']; ?>"
+                 class="btn btn-primary btn-sm">
+                View Details →
+              </a>
+            </div>
+
+          </div>
+        <?php endforeach; ?>
+      </div>
+    <?php endif; ?>
+
+    <!-- ── Recently Added (always shown) ── -->
+    <div class="section-header" style="margin-top:<?php echo $hasProfile ? '32px' : '0'; ?>;">
       <div>
         <h2 class="section-title">Recently Added Hostels</h2>
         <p class="section-subtitle">
