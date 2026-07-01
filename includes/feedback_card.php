@@ -68,11 +68,6 @@
   <?php else: ?>
     <div style="font-size:12px; color:var(--gray-400);
                  margin-top:8px;">
-      Classified on
-      <?php echo date(
-        'j M Y',
-        strtotime($fb['classifiedAt'])
-      ); ?>
     </div>
   <?php endif; ?>
 
