@@ -10,10 +10,22 @@ require_once __DIR__ . '/../config/db.php';
 $db        = getDB();
 $studentId = (int)$_SESSION['studentId'];
 
+// Check if student is assigned to a hostel
+$assignStmt = $db->prepare(
+    'SELECT s.currentHostelId, h.hostelName
+     FROM students s
+     LEFT JOIN hostel_listings h ON s.currentHostelId = h.hostelId
+     WHERE s.studentId = ?'
+);
+$assignStmt->execute([$studentId]);
+$assignment = $assignStmt->fetch();
+$assignedHostelId   = $assignment['currentHostelId'] ?? null;
+$assignedHostelName = $assignment['hostelName'] ?? null;
+
 // Pre-selected hostel from detail page link (?hostelId=X)
 $preselectedHostelId = (int)($_GET['hostelId'] ?? 0);
 
-// Load all active hostels for dropdown
+// Load all active hostels for dropdown (only used if assigned)
 $hostels = $db->query(
     'SELECT hostelId, hostelName FROM hostel_listings
      WHERE isActive = 1 ORDER BY hostelName ASC'
@@ -64,50 +76,59 @@ include __DIR__ . '/../includes/sidebar.php';
           </div>
           <div class="card-body">
 
-            <div class="alert alert-info mb-16" id="formAlert" style="display:none;"></div>
-
-            <div class="alert alert-info mb-16">
-              ℹ️ Only submit feedback about a hostel you have
-              personally occupied. Your report will be reviewed
-              by the Office of the Dean of Students.
-            </div>
-
-            <form action="#" method="POST" id="feedbackForm" novalidate>
-
-              <div class="form-group">
-                <label for="hostelId">Hostel</label>
-                <select id="hostelId" name="hostelId"
-                  class="form-control" required>
-                  <option value="" disabled
-                    <?php echo !$preselectedHostelId ? 'selected' : ''; ?>>
-                    Select a hostel…
-                  </option>
-                  <?php foreach ($hostels as $h): ?>
-                    <option value="<?php echo $h['hostelId']; ?>"
-                      <?php echo $h['hostelId'] === $preselectedHostelId ? 'selected' : ''; ?>>
-                      <?php echo htmlspecialchars($h['hostelName']); ?>
-                    </option>
-                  <?php endforeach; ?>
-                </select>
-                <div class="form-error" id="err-hostelId"></div>
+            <?php if (!$assignedHostelId): ?>
+              <!-- Student not assigned to any hostel — block form -->
+              <div class="alert alert-info mb-16">
+                ℹ️ <strong>No hostel assigned.</strong> Feedback can only be
+                submitted for a hostel you are currently occupying. Your hostel
+                assignment is recorded by the Office of the Dean of Students
+                when your accommodation is confirmed. Please contact the Dean
+                of Students office if you believe this is an error.
               </div>
 
-              <div class="form-group">
-                <label for="submissionText">Your Feedback</label>
-                <textarea id="submissionText" name="submissionText"
-                  class="form-control"
-                  placeholder="Describe your experience — the accuracy of the listing, the condition of the property, any maintenance issues, safety concerns, or general observations…"
-                  rows="7" required minlength="30"></textarea>
-                <div class="form-hint">Minimum 30 characters. Be specific and factual.</div>
-                <div class="form-error" id="err-submissionText"></div>
-                <div class="char-counter" id="charCounter">0 / 30 minimum</div>
+            <?php else: ?>
+              <!-- Student is assigned — show form -->
+              <div class="alert alert-success mb-16">
+                🏠 You are currently assigned to
+                <strong><?php echo htmlspecialchars($assignedHostelName); ?></strong>.
+                You may submit feedback for this hostel only.
               </div>
 
-              <button type="submit" class="btn btn-primary btn-full">
-                Submit Feedback →
-              </button>
+              <div class="alert alert-info mb-16" id="formAlert" style="display:none;"></div>
 
-            </form>
+              <form action="#" method="POST" id="feedbackForm" novalidate>
+
+                <!-- Hostel is fixed to the assigned one — shown as read-only -->
+                <div class="form-group">
+                  <label>Hostel</label>
+                  <input type="text"
+                    class="form-control"
+                    value="<?php echo htmlspecialchars($assignedHostelName); ?>"
+                    readonly
+                    style="background:var(--gray-50); color:var(--gray-600);"
+                  />
+                  <input type="hidden" id="hostelId" name="hostelId"
+                    value="<?php echo $assignedHostelId; ?>" />
+                </div>
+
+                <div class="form-group">
+                  <label for="submissionText">Your Feedback</label>
+                  <textarea id="submissionText" name="submissionText"
+                    class="form-control"
+                    placeholder="Describe your experience — the accuracy of the listing, the condition of the property, any maintenance issues, safety concerns, or general observations…"
+                    rows="7" required minlength="30"></textarea>
+                  <div class="form-hint">Minimum 30 characters. Be specific and factual.</div>
+                  <div class="form-error" id="err-submissionText"></div>
+                  <div class="char-counter" id="charCounter">0 / 30 minimum</div>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-full">
+                  Submit Feedback →
+                </button>
+
+              </form>
+
+            <?php endif; ?>
 
           </div>
         </div>
@@ -194,20 +215,11 @@ function clearError(fieldId) {
     if (inp) inp.classList.remove('is-error');
 }
 
-['hostelId', 'submissionText'].forEach(id => {
-    document.getElementById(id)?.addEventListener('input',  () => clearError(id));
-    document.getElementById(id)?.addEventListener('change', () => clearError(id));
-});
+document.getElementById('submissionText')?.addEventListener('input', () => clearError('submissionText'));
 
 form?.addEventListener('submit', async function(e) {
     e.preventDefault();
     let valid = true;
-
-    const hostelVal = document.getElementById('hostelId').value;
-    if (!hostelVal) {
-        showError('hostelId', 'Please select a hostel.');
-        valid = false;
-    }
 
     const text = textArea.value.trim();
     if (!text) {
@@ -219,6 +231,8 @@ form?.addEventListener('submit', async function(e) {
     }
 
     if (!valid) return;
+
+    const hostelVal = document.getElementById('hostelId').value;
 
     try {
         const response = await fetch('/SU-Housing/api/feedback.php', {
@@ -234,13 +248,11 @@ form?.addEventListener('submit', async function(e) {
         const data = await response.json();
 
         if (response.ok) {
-            // Show success and reload to show new feedback in list
             formAlert.style.display = 'flex';
             formAlert.className     = 'alert alert-success mb-16';
             formAlert.textContent   = '✓ Feedback submitted successfully!';
             form.reset();
             charCounter.textContent = '0 / 30 minimum';
-            // Reload after 1.5 seconds to show updated list
             setTimeout(() => window.location.reload(), 1500);
         } else {
             formAlert.style.display = 'flex';
@@ -258,3 +270,4 @@ form?.addEventListener('submit', async function(e) {
 </script>
 
 <?php include __DIR__ . '/../includes/footer.php'; ?>
+
