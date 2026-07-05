@@ -95,7 +95,7 @@ include __DIR__ . '/../includes/sidebar.php';
                 alt="<?php echo htmlspecialchars($hostel['hostelName']); ?>"
                 style="width:100%; height:100%; object-fit:cover; border-radius:inherit;"/>
           <?php else: ?>
-            <span style="font-size:72px;">🏠</span>
+            <span style="font-size:72px;"></span>
           <?php endif; ?>
           <div class="detail-img-overlay"></div>
         </div>
@@ -146,7 +146,7 @@ include __DIR__ . '/../includes/sidebar.php';
             </div>
             <div class="travel-times" id="travelTimes">
               <div class="travel-item">
-                <div class="travel-icon">🚶</div>
+                <div class="travel-icon"></div>
                 <div class="travel-info">
                   <div class="travel-mode">Walking</div>
                   <div class="travel-duration" id="walkDuration">Calculating…</div>
@@ -155,7 +155,7 @@ include __DIR__ . '/../includes/sidebar.php';
               </div>
               <div class="travel-divider"></div>
               <div class="travel-item">
-                <div class="travel-icon">🚌</div>
+                <div class="travel-icon"></div>
                 <div class="travel-info">
                   <div class="travel-mode">Driving</div>
                   <div class="travel-duration" id="driveDuration">Calculating…</div>

@@ -115,7 +115,7 @@ include __DIR__ . '/../includes/sidebar.php';
                   <label for="submissionText">Your Feedback</label>
                   <textarea id="submissionText" name="submissionText"
                     class="form-control"
-                    placeholder="Describe your experience — the accuracy of the listing, the condition of the property, any maintenance issues, safety concerns, or general observations…"
+                    placeholder="Describe your experience — the condition of the property, any maintenance issues, safety concerns, or general observations…"
                     rows="7" required minlength="30"></textarea>
                   <div class="form-hint">Minimum 30 characters. Be specific and factual.</div>
                   <div class="form-error" id="err-submissionText"></div>

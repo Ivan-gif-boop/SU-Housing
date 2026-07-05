@@ -122,7 +122,7 @@ include __DIR__ . '/../includes/sidebar.php';
                   <?php else: ?>
                     <div style="width:56px; height:48px; background:var(--gray-100);
                                 border-radius:6px; display:flex; align-items:center;
-                                justify-content:center; font-size:20px;">🏠</div>
+                                justify-content:center; font-size:20px;"></div>
                   <?php endif; ?>
                 </td>
                 <td>
@@ -180,7 +180,7 @@ include __DIR__ . '/../includes/sidebar.php';
 
         <?php if (empty($listings)): ?>
           <div class="empty-state" style="padding:48px;">
-            <div class="empty-icon">🏠</div>
+            <div class="empty-icon"></div>
             <h3>No listings yet</h3>
             <p>Click "Add New Listing" to publish your first hostel.</p>
           </div>
@@ -407,7 +407,7 @@ include __DIR__ . '/../includes/sidebar.php';
         <p style="font-size:15px; color:var(--gray-600); line-height:1.6;"
            id="confirmMessage"></p>
         <div class="alert alert-warning" style="margin-top:16px; font-size:13px;">
-          ⚠️ The listing will be hidden from students but not permanently deleted.
+          The listing will be hidden from students but not permanently deleted.
           It can be restored later.
         </div>
       </div>

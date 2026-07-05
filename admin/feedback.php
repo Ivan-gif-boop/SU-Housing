@@ -111,7 +111,6 @@ include __DIR__ . '/../includes/sidebar.php';
     <div class="stats-grid">
 
       <div class="stat-card animate-fade-up delay-1">
-        <div class="stat-icon amber">📋</div>
         <div>
           <div class="stat-num"><?php echo count($allFeedback); ?></div>
           <div class="stat-label">Total Submissions</div>

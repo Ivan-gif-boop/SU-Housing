@@ -71,7 +71,7 @@ $listings = $stmt->fetchAll();
 foreach ($listings as &$h) {
     $h['amenities']  = json_decode($h['amenities'], true) ?? [];
     // 'location' alias so browse.js data-attribute works
-    $h['location']   = $h['neighbourhood'];
+    $h['location']   = $h['physicalAddress'];
     $h['matchScore'] = 0;
 
     if ($profile) {
@@ -145,7 +145,7 @@ include __DIR__ . '/../includes/sidebar.php';
       </div>
     <?php else: ?>
       <div class="alert alert-info mb-24" style="align-items:center;">
-        <span style="font-size:18px;">💡</span>
+        <span style="font-size:18px;"></span>
         <div style="flex:1;">
           <strong>Get personalised recommendations.</strong>
           Set up your preference profile to see match percentages
@@ -177,7 +177,7 @@ include __DIR__ . '/../includes/sidebar.php';
         <div class="filter-group">
           <label class="filter-label">Search</label>
           <div class="input-wrap">
-            <span class="input-icon">🔍</span>
+            <span class="input-icon"></span>
             <input
               type="text"
               id="filterSearch"
@@ -190,15 +190,15 @@ include __DIR__ . '/../includes/sidebar.php';
 
         <!-- Neighbourhood / Location -->
         <div class="filter-group">
-          <label class="filter-label">Neighbourhood</label>
-          <select id="filterNeighbourhood"
+          <label class="filter-label">Location</label>
+          <select id="filterLocation"
                   class="form-control"
                   onchange="applyFilters()">
-            <option value="">All Neighbourhoods</option>
+            <option value="">All Locations</option>
             <?php
             // Build neighbourhood options dynamically from DB results
             $neighbourhoods = array_unique(
-                array_column($listings, 'neighbourhood')
+                array_column($listings, 'physicalAddress')
             );
             sort($neighbourhoods);
             foreach ($neighbourhoods as $nbh):
@@ -311,7 +311,7 @@ include __DIR__ . '/../includes/sidebar.php';
           <?php foreach ($listings as $h): ?>
             <div class="hostel-card animate-fade-up"
                  data-name="<?php echo strtolower(htmlspecialchars($h['hostelName'])); ?>"
-                 data-neighbourhood="<?php echo htmlspecialchars($h['neighbourhood']); ?>"
+                 data-location="<?php echo htmlspecialchars($h['physicalAddress']); ?>"
                  data-price-min="<?php echo $h['priceMin']; ?>"
                  data-price-max="<?php echo $h['priceMax']; ?>"
                  data-room-type="<?php echo $h['roomType']; ?>"
@@ -326,7 +326,7 @@ include __DIR__ . '/../includes/sidebar.php';
                          alt="<?php echo htmlspecialchars($h['hostelName']); ?>"
                          style="width:100%; height:100%; object-fit:cover;"/>
                   <?php else: ?>
-                    <span class="hostel-card-emoji">🏠</span>
+                    <span class="hostel-card-emoji"></span>
                   <?php endif; ?>
                 </div>
                 <?php if ($hasProfile): ?>
@@ -345,7 +345,7 @@ include __DIR__ . '/../includes/sidebar.php';
                   <?php echo htmlspecialchars($h['hostelName']); ?>
                 </h3>
                 <div class="hostel-location">
-                  📍 <?php echo htmlspecialchars($h['neighbourhood']); ?>
+                   <?php echo htmlspecialchars($h['physicalAddress']); ?>
                   <span class="hostel-rooms-pill">
                     · <?php echo $h['roomsAvailable']; ?> rooms
                   </span>
@@ -381,7 +381,7 @@ include __DIR__ . '/../includes/sidebar.php';
         <!-- Empty state -->
         <div class="empty-state" id="emptyState"
              style="display:<?php echo empty($listings) ? 'flex' : 'none'; ?>;">
-          <div class="empty-icon">🔍</div>
+          <div class="empty-icon"></div>
           <h3>No hostels found</h3>
           <p>Try adjusting your filters or search term.</p>
           <button class="btn btn-outline mt-16" onclick="clearFilters()">

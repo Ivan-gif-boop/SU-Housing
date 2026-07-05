@@ -258,7 +258,7 @@ include __DIR__ . '/../includes/sidebar.php';
           <div style="display:flex; align-items:center; justify-content:center;
                       height:100%; flex-direction:column; gap:8px;
                       color:var(--gray-400);">
-            <span style="font-size:36px;">📊</span>
+            <span style="font-size:36px;"></span>
             <p style="font-size:14px;">No feedback submitted yet.</p>
           </div>
         <?php else: ?>
@@ -313,7 +313,7 @@ include __DIR__ . '/../includes/sidebar.php';
       <div class="table-wrap">
         <?php if (empty($recentActivity)): ?>
           <div class="empty-state" style="padding:40px;">
-            <div class="empty-icon">📋</div>
+            <div class="empty-icon"></div>
             <h3>No activity yet</h3>
             <p>Recent feedback submissions will appear here.</p>
           </div>
@@ -370,7 +370,7 @@ include __DIR__ . '/../includes/sidebar.php';
       <div class="table-wrap">
         <?php if (empty($listings)): ?>
           <div class="empty-state" style="padding:40px;">
-            <div class="empty-icon">🏠</div>
+            <div class="empty-icon"></div>
             <h3>No active listings</h3>
             <p>
               <a href="/SU-Housing/admin/listings.php"
@@ -446,7 +446,7 @@ include __DIR__ . '/../includes/sidebar.php';
     <?php if ($prefAnalytics['totalWithProfile'] === 0): ?>
       <div class="card">
         <div class="empty-state" style="padding:40px;">
-          <div class="empty-icon">⚙️</div>
+          <div class="empty-icon"></div>
           <h3>No preference profiles yet</h3>
           <p>Analytics will appear here once students set up their preference profiles.</p>
         </div>
