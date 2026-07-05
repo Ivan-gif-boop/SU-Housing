@@ -1,5 +1,9 @@
 <?php
 // admin/listings.php
+// FR-02: admin creates a hostel listing
+// FR-03: listing immediately visible on creation
+// FR-04: admin removes a listing (soft delete — isActive = 0)
+
 session_start();
 
 require_once __DIR__ . '/../includes/auth.php';
@@ -9,14 +13,15 @@ require_once __DIR__ . '/../config/db.php';
 $db = getDB();
 
 $userName = $_SESSION['fullName'] ?? 'Administrator';
-$userEmail = $_SESSION['email'] ?? null;
 
-// ── Fetch all listings (active + removed) from DB 
+// ── Fetch all listings (active + removed) from DB ──
+// NOTE: landlordName and landlordContact are now both separate
+// NOT NULL columns in the DB.
 $listingsStmt = $db->query(
     'SELECT hostelId, hostelName, physicalAddress, description,
             priceMin, priceMax, roomType, roomsAvailable, amenities,
             landlordName, landlordContact, genderPolicy, environmentType, curfewPolicy,
-            isActive
+            imagePath, isActive
      FROM hostel_listings
      ORDER BY createdAt DESC'
 );
@@ -93,6 +98,7 @@ include __DIR__ . '/../includes/sidebar.php';
         <table id="listingsTable">
           <thead>
             <tr>
+              <th>Image</th>
               <th>Hostel Name</th>
               <th>Location</th>
               <th>Price Range (KES/mo)</th>
@@ -107,6 +113,18 @@ include __DIR__ . '/../includes/sidebar.php';
               <tr class="listing-row"
                   data-name="<?php echo strtolower(htmlspecialchars($l['hostelName'])); ?>"
                   data-active="<?php echo $l['isActive']; ?>">
+                <td>
+                  <?php if (!empty($l['imagePath'])): ?>
+                    <img src="<?php echo htmlspecialchars($l['imagePath']); ?>"
+                         alt="<?php echo htmlspecialchars($l['hostelName']); ?>"
+                         style="width:56px; height:48px; object-fit:cover;
+                                border-radius:6px; display:block;"/>
+                  <?php else: ?>
+                    <div style="width:56px; height:48px; background:var(--gray-100);
+                                border-radius:6px; display:flex; align-items:center;
+                                justify-content:center; font-size:20px;">🏠</div>
+                  <?php endif; ?>
+                </td>
                 <td>
                   <strong><?php echo htmlspecialchars($l['hostelName']); ?></strong>
                 </td>
@@ -130,7 +148,7 @@ include __DIR__ . '/../includes/sidebar.php';
                       class="btn btn-outline btn-sm"
                       onclick='editListing(<?php echo json_encode($l); ?>)'
                     >
-                      Edit
+                      ✏️ Edit
                     </button>
                     <?php if ($l['isActive']): ?>
                       <button
@@ -162,6 +180,7 @@ include __DIR__ . '/../includes/sidebar.php';
 
         <?php if (empty($listings)): ?>
           <div class="empty-state" style="padding:48px;">
+            <div class="empty-icon">🏠</div>
             <h3>No listings yet</h3>
             <p>Click "Add New Listing" to publish your first hostel.</p>
           </div>
@@ -184,6 +203,30 @@ include __DIR__ . '/../includes/sidebar.php';
       <div class="modal-body">
         <form id="listingForm" novalidate>
           <input type="hidden" id="editHostelId" name="hostelId"/>
+
+          <!-- Image upload -->
+          <div class="form-group">
+            <label for="lImage">Hostel Photo</label>
+            <input
+              type="file"
+              id="lImage"
+              name="image"
+              class="form-control"
+              accept="image/jpeg,image/png,image/webp"
+            />
+            <div class="form-hint">
+              JPG, PNG or WebP. Max 2MB. Leave blank to keep existing photo.
+            </div>
+            <div class="form-error" id="err-lImage"></div>
+            <!-- Preview of current image when editing -->
+            <div id="currentImagePreview" style="display:none; margin-top:8px;">
+              <img id="currentImageThumb"
+                   style="height:80px; border-radius:6px; object-fit:cover;"/>
+              <div style="font-size:12px; color:var(--gray-400); margin-top:4px;">
+                Current photo — upload a new one to replace it
+              </div>
+            </div>
+          </div>
 
           <div class="form-group">
             <label for="lName">Hostel Name</label>
@@ -364,7 +407,7 @@ include __DIR__ . '/../includes/sidebar.php';
         <p style="font-size:15px; color:var(--gray-600); line-height:1.6;"
            id="confirmMessage"></p>
         <div class="alert alert-warning" style="margin-top:16px; font-size:13px;">
-          The listing will be hidden from students but not permanently deleted.
+          ⚠️ The listing will be hidden from students but not permanently deleted.
           It can be restored later.
         </div>
       </div>

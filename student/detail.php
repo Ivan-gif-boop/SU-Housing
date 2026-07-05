@@ -87,12 +87,19 @@ include __DIR__ . '/../includes/sidebar.php';
       <div class="detail-main">
 
         <!-- Image placeholder -->
-        <div class="detail-hero-img card mb-16">
-          <div class="detail-img-main">
+        <!-- Hero image -->
+      <div class="detail-hero-img card mb-16">
+        <div class="detail-img-main">
+          <?php if (!empty($hostel['imagePath'])): ?>
+            <img src="<?php echo htmlspecialchars($hostel['imagePath']); ?>"
+                alt="<?php echo htmlspecialchars($hostel['hostelName']); ?>"
+                style="width:100%; height:100%; object-fit:cover; border-radius:inherit;"/>
+          <?php else: ?>
             <span style="font-size:72px;">🏠</span>
-            <div class="detail-img-overlay"></div>
-          </div>
+          <?php endif; ?>
+          <div class="detail-img-overlay"></div>
         </div>
+      </div>
 
         <!-- Description -->
         <div class="card mb-16">

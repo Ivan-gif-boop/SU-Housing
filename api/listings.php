@@ -142,11 +142,18 @@ if ($method === 'GET') {
 
 // ─────────────────────────────────────────
 // POST — admin creates a new listing (FR-02)
+// Now uses multipart/form-data to support image upload
 // ─────────────────────────────────────────
 } elseif ($method === 'POST') {
     requireAdmin();
 
-    $data = json_decode(file_get_contents('php://input'), true);
+    // Data comes from $_POST (multipart/form-data), not php://input
+    $data = $_POST;
+
+    // Amenities arrive as JSON string from FormData
+    if (!empty($data['amenities']) && is_string($data['amenities'])) {
+        $data['amenities'] = json_decode($data['amenities'], true) ?? [];
+    }
 
     $required = [
         'hostelName', 'physicalAddress', 'description',
@@ -195,7 +202,7 @@ if ($method === 'GET') {
         exit;
     }
 
-    // Geocode using Nominatim (free, no API key needed)
+    // Geocode using Nominatim
     $lat = null;
     $lng = null;
 
@@ -204,18 +211,16 @@ if ($method === 'GET') {
              . "?q=$address&format=json&limit=1";
 
     $context = stream_context_create([
-        'http' => [
-            'header' => 'User-Agent: SUhousing/1.0 (student project)',
-        ],
+        'http' => ['header' => 'User-Agent: SUhousing/1.0 (student project)'],
     ]);
 
     $geoResp = json_decode(@file_get_contents($geoUrl, false, $context), true);
-
     if (!empty($geoResp)) {
         $lat = (float) $geoResp[0]['lat'];
         $lng = (float) $geoResp[0]['lon'];
     }
 
+    // Insert first to get the hostelId for naming the image file
     $stmt = $db->prepare(
         'INSERT INTO hostel_listings
             (hostelName, physicalAddress, description,
@@ -242,14 +247,35 @@ if ($method === 'GET') {
         $data['curfewPolicy'],
     ]);
 
+    $hostelId = (int) $db->lastInsertId();
+
+    // Handle image upload if provided
+    $imagePath = null;
+    if (!empty($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
+        $imagePath = handleImageUpload($_FILES['image'], $hostelId);
+        if ($imagePath === false) {
+            // Image failed but listing was created — still return success,
+            // just without an image
+            $imagePath = null;
+        } else {
+            // Update the listing with the image path
+            $imgStmt = $db->prepare(
+                'UPDATE hostel_listings SET imagePath = ? WHERE hostelId = ?'
+            );
+            $imgStmt->execute([$imagePath, $hostelId]);
+        }
+    }
+
     http_response_code(201);
     echo json_encode([
-        'message'  => 'Listing created successfully.',
-        'hostelId' => $db->lastInsertId(),
+        'message'   => 'Listing created successfully.',
+        'hostelId'  => $hostelId,
+        'imagePath' => $imagePath,
     ]);
 
 // ─────────────────────────────────────────
 // PATCH — admin edits a listing (?id=X)
+// Also uses multipart/form-data to support image upload
 // ─────────────────────────────────────────
 } elseif ($method === 'PATCH') {
     requireAdmin();
@@ -261,9 +287,7 @@ if ($method === 'GET') {
         exit;
     }
 
-    $data = json_decode(file_get_contents('php://input'), true);
-
-    // Restore action — re-activates a soft-deleted listing
+    // Restore action — JSON based, no file upload needed
     if (($_GET['action'] ?? '') === 'restore') {
         $stmt = $db->prepare(
             'UPDATE hostel_listings SET isActive = 1 WHERE hostelId = ?'
@@ -271,6 +295,13 @@ if ($method === 'GET') {
         $stmt->execute([$hostelId]);
         echo json_encode(['message' => 'Listing restored successfully.']);
         exit;
+    }
+
+    // Edit comes from $_POST (multipart/form-data)
+    $data = $_POST;
+
+    if (!empty($data['amenities']) && is_string($data['amenities'])) {
+        $data['amenities'] = json_decode($data['amenities'], true) ?? [];
     }
 
     $allowed = [
@@ -288,6 +319,15 @@ if ($method === 'GET') {
             $params[] = $field === 'amenities'
                 ? json_encode($data[$field])
                 : $data[$field];
+        }
+    }
+
+    // Handle image upload if a new image was provided
+    if (!empty($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
+        $imagePath = handleImageUpload($_FILES['image'], $hostelId);
+        if ($imagePath !== false) {
+            $sets[]   = 'imagePath = ?';
+            $params[] = $imagePath;
         }
     }
 
@@ -326,6 +366,44 @@ if ($method === 'GET') {
 } else {
     http_response_code(405);
     echo json_encode(['error' => 'Method not allowed']);
+}
+
+// Image upload helper
+// Validates and saves the uploaded image to assets/img/hostels/
+// Returns the relative web path on success, false on failure
+function handleImageUpload(array $file, int $hostelId): string|false {
+    $allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    $maxSize      = 2 * 1024 * 1024; // 2MB
+
+    if (!in_array($file['type'], $allowedTypes)) {
+        return false;
+    }
+
+    if ($file['size'] > $maxSize) {
+        return false;
+    }
+
+    // Determine extension from mime type
+    $ext = match($file['type']) {
+        'image/jpeg' => 'jpg',
+        'image/png'  => 'png',
+        'image/webp' => 'webp',
+        default      => 'jpg',
+    };
+
+    $uploadDir = $_SERVER['DOCUMENT_ROOT'] . '/SU-Housing/assets/img/hostels/';
+    $filename  = $hostelId . '.' . $ext;
+    $fullPath  = $uploadDir . $filename;
+
+    if (!is_dir($uploadDir)) {
+        mkdir($uploadDir, 0755, true);
+    }
+
+    if (!move_uploaded_file($file['tmp_name'], $fullPath)) {
+        return false;
+    }
+
+    return '/SU-Housing/assets/img/hostels/' . $filename;
 }
 
 // Preference scoring algorithm (FR-09)

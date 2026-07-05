@@ -45,6 +45,20 @@ function editListing(listing) {
   document.getElementById('lLandlordName').value              = listing.landlordName;
   document.getElementById('lLandlordContact').value           = listing.landlordContact;
 
+  // Show current image preview if the listing has one
+  const preview = document.getElementById('currentImagePreview');
+  const thumb   = document.getElementById('currentImageThumb');
+  if (listing.imagePath && preview && thumb) {
+    thumb.src             = listing.imagePath;
+    preview.style.display = 'block';
+  } else if (preview) {
+    preview.style.display = 'none';
+  }
+
+  // Clear the file input so old selection doesn't carry over
+  const imageInput = document.getElementById('lImage');
+  if (imageInput) imageInput.value = '';
+
   // Tick the right amenity checkboxes
   const amenities = Array.isArray(listing.amenities) ? listing.amenities : [];
   document.querySelectorAll('.modal-amenity').forEach(cb => {
@@ -61,6 +75,8 @@ document.querySelector('[onclick="openModal(\'listingModal\')"]')
   document.getElementById('listingForm')?.reset();
   document.getElementById('editHostelId').value = '';
   document.querySelectorAll('.modal-amenity').forEach(cb => cb.checked = false);
+  const preview = document.getElementById('currentImagePreview');
+  if (preview) preview.style.display = 'none';
   clearAllErrors();
 });
 
@@ -84,7 +100,7 @@ function clearAllErrors() {
   document.querySelectorAll('.is-error').forEach(el => el.classList.remove('is-error'));
 }
 
-// ── Submit listing form → real API ──
+// ── Submit listing form → real API (multipart/form-data for image support) ──
 async function submitListingForm() {
   clearAllErrors();
   let valid = true;
@@ -118,6 +134,21 @@ async function submitListingForm() {
     valid = false;
   }
 
+  // Validate image if provided
+  const imageInput = document.getElementById('lImage');
+  if (imageInput?.files.length > 0) {
+    const file     = imageInput.files[0];
+    const allowed  = ['image/jpeg', 'image/png', 'image/webp'];
+    const maxBytes = 2 * 1024 * 1024;
+    if (!allowed.includes(file.type)) {
+      showError('lImage', 'Image must be JPG, PNG, or WebP.');
+      valid = false;
+    } else if (file.size > maxBytes) {
+      showError('lImage', 'Image must be under 2MB.');
+      valid = false;
+    }
+  }
+
   if (!valid) return;
 
   const hostelId = document.getElementById('editHostelId').value;
@@ -127,31 +158,35 @@ async function submitListingForm() {
     document.querySelectorAll('.modal-amenity:checked')
   ).map(cb => cb.value);
 
-  const payload = {
-    hostelName:       document.getElementById('lName').value.trim(),
-    physicalAddress:  document.getElementById('lAddress').value.trim(),
-    description:      document.getElementById('lDesc').value.trim(),
-    priceMin:         parseFloat(document.getElementById('lPriceMin').value),
-    priceMax:         parseFloat(document.getElementById('lPriceMax').value),
-    roomType:         document.getElementById('lRoomType').value,
-    roomsAvailable:   parseInt(document.getElementById('lRooms').value, 10),
-    genderPolicy:     document.getElementById('lGenderPolicy').value,
-    environmentType:  document.getElementById('lEnvironmentType').value,
-    curfewPolicy:     document.getElementById('lCurfewPolicy').value,
-    landlordName:     document.getElementById('lLandlordName').value.trim(),
-    landlordContact:  document.getElementById('lLandlordContact').value.trim(),
-    amenities,
-  };
+  // Use FormData so the image file can be included in the request
+  const formData = new FormData();
+  formData.append('hostelName',      document.getElementById('lName').value.trim());
+  formData.append('physicalAddress', document.getElementById('lAddress').value.trim());
+  formData.append('description',     document.getElementById('lDesc').value.trim());
+  formData.append('priceMin',        document.getElementById('lPriceMin').value);
+  formData.append('priceMax',        document.getElementById('lPriceMax').value);
+  formData.append('roomType',        document.getElementById('lRoomType').value);
+  formData.append('roomsAvailable',  document.getElementById('lRooms').value);
+  formData.append('genderPolicy',    document.getElementById('lGenderPolicy').value);
+  formData.append('environmentType', document.getElementById('lEnvironmentType').value);
+  formData.append('curfewPolicy',    document.getElementById('lCurfewPolicy').value);
+  formData.append('landlordName',    document.getElementById('lLandlordName').value.trim());
+  formData.append('landlordContact', document.getElementById('lLandlordContact').value.trim());
+  // Amenities sent as JSON string since FormData can't send arrays natively
+  formData.append('amenities',       JSON.stringify(amenities));
+
+  // Attach image file if selected
+  if (imageInput?.files.length > 0) {
+    formData.append('image', imageInput.files[0]);
+  }
 
   const url    = '/SU-Housing/api/listings.php' + (isEdit ? `?id=${hostelId}` : '');
   const method = isEdit ? 'PATCH' : 'POST';
 
   try {
-    const res  = await fetch(url, {
-      method,
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
+    // Do NOT set Content-Type header — browser sets it automatically
+    // with the correct multipart boundary when using FormData
+    const res  = await fetch(url, { method, body: formData });
     const data = await res.json();
 
     if (res.ok) {

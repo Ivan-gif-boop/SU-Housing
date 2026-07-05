@@ -209,7 +209,7 @@ include __DIR__ . '/../includes/sidebar.php';
     <div class="stats-grid">
 
       <div class="stat-card animate-fade-up delay-1">
-        <div class="stat-icon amber">🏠</div>
+        <div class="stat-icon amber"></div>
         <div>
           <div class="stat-num"><?php echo $activeListings; ?></div>
           <div class="stat-label">Active Listings</div>
@@ -217,7 +217,7 @@ include __DIR__ . '/../includes/sidebar.php';
       </div>
 
       <div class="stat-card animate-fade-up delay-2">
-        <div class="stat-icon red">⏳</div>
+        <div class="stat-icon red"></div>
         <div>
           <div class="stat-num"><?php echo $pendingCount; ?></div>
           <div class="stat-label">Pending Feedback</div>
@@ -225,7 +225,7 @@ include __DIR__ . '/../includes/sidebar.php';
       </div>
 
       <div class="stat-card animate-fade-up delay-3">
-        <div class="stat-icon blue">🎓</div>
+        <div class="stat-icon blue"></div>
         <div>
           <div class="stat-num"><?php echo $studentCount; ?></div>
           <div class="stat-label">Registered Students</div>
@@ -233,7 +233,7 @@ include __DIR__ . '/../includes/sidebar.php';
       </div>
 
       <div class="stat-card animate-fade-up delay-4">
-        <div class="stat-icon green">📋</div>
+        <div class="stat-icon green"></div>
         <div>
           <div class="stat-num"><?php echo $totalFeedback; ?></div>
           <div class="stat-label">Total Feedback</div>
@@ -342,7 +342,7 @@ include __DIR__ . '/../includes/sidebar.php';
                     <?php elseif ($a['classification'] === 'negative'): ?>
                       <span class="badge badge-red">✗ Negative</span>
                     <?php else: ?>
-                      <span class="badge badge-gray">⏳ Pending</span>
+                      <span class="badge badge-gray">Pending</span>
                     <?php endif; ?>
                   </td>
                 </tr>

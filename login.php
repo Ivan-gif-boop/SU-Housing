@@ -151,7 +151,7 @@ $pageTitle = 'Sign In';
 
         <div class="alert alert-info"
              style="margin-bottom:20px; font-size:13px;">
-          🔑 Administrator access only. Contact the Dean of
+          Administrator access only. Contact the Dean of
           Students office if you need assistance.
         </div>
 
