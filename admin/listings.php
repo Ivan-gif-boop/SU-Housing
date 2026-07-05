@@ -148,7 +148,7 @@ include __DIR__ . '/../includes/sidebar.php';
                       class="btn btn-outline btn-sm"
                       onclick='editListing(<?php echo json_encode($l); ?>)'
                     >
-                      ✏️ Edit
+                       Edit
                     </button>
                     <?php if ($l['isActive']): ?>
                       <button
