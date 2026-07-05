@@ -206,7 +206,6 @@ include __DIR__ . '/../includes/sidebar.php';
     <div class="stats-grid">
 
       <div class="stat-card animate-fade-up delay-1">
-        <div class="stat-icon amber"></div>
         <div>
           <div class="stat-num"><?php echo $totalListings; ?></div>
           <div class="stat-label">Verified Hostels</div>
@@ -214,7 +213,6 @@ include __DIR__ . '/../includes/sidebar.php';
       </div>
 
       <div class="stat-card animate-fade-up delay-2">
-        <div class="stat-icon green"></div>
         <div>
           <div class="stat-num"><?php echo $myFeedbackCount; ?></div>
           <div class="stat-label">My Feedback</div>
@@ -222,7 +220,6 @@ include __DIR__ . '/../includes/sidebar.php';
       </div>
 
       <div class="stat-card animate-fade-up delay-3">
-        <div class="stat-icon blue"></div>
         <div>
           <div class="stat-num"><?php echo $hasProfile ? '✓' : '—'; ?></div>
           <div class="stat-label">Preference Profile</div>
@@ -342,7 +339,7 @@ include __DIR__ . '/../includes/sidebar.php';
                 <?php echo htmlspecialchars($h['hostelName']); ?>
               </h3>
               <div class="hostel-location">
-                📍 <?php echo htmlspecialchars($h['physicalAddress']); ?>
+                 <?php echo htmlspecialchars($h['physicalAddress']); ?>
               </div>
               <div class="hostel-amenities">
                 <?php foreach (array_slice($h['amenities'], 0, 3) as $amenity): ?>
@@ -379,25 +376,21 @@ include __DIR__ . '/../includes/sidebar.php';
     <div class="quick-actions-grid">
 
       <a href="/SU-Housing/student/browse.php" class="quick-action-card">
-        <div class="qa-icon amber"></div>
         <div class="qa-label">Browse Hostels</div>
         <div class="qa-desc">Search and filter all verified listings</div>
       </a>
 
       <a href="/SU-Housing/student/feedback.php" class="quick-action-card">
-        <div class="qa-icon green"></div>
         <div class="qa-label">My Feedback</div>
         <div class="qa-desc">View feedback you've submitted</div>
       </a>
 
       <a href="/SU-Housing/student/preference_profile.php" class="quick-action-card">
-        <div class="qa-icon blue"></div>
         <div class="qa-label">My Preferences</div>
         <div class="qa-desc">Update your accommodation preferences</div>
       </a>
 
       <a href="/SU-Housing/student/profile.php" class="quick-action-card">
-        <div class="qa-icon navy"></div>
         <div class="qa-label">My Profile</div>
         <div class="qa-desc">View and edit your account details</div>
       </a>

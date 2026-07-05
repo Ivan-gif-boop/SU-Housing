@@ -118,7 +118,6 @@ include __DIR__ . '/../includes/sidebar.php';
       </div>
 
       <div class="stat-card animate-fade-up delay-2">
-        <div class="stat-icon red">⏳</div>
         <div>
           <div class="stat-num"><?php echo $pendingCount; ?></div>
           <div class="stat-label">Pending Classification</div>

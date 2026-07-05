@@ -64,7 +64,7 @@ include __DIR__ . '/../includes/sidebar.php';
                   gap:10px; margin-top:6px; flex-wrap:wrap;">
         <span class="badge badge-green">Active</span>
         <span class="tag tag-blue">
-          📍 <?php echo htmlspecialchars($hostel['location']); ?>
+           <?php echo htmlspecialchars($hostel['location']); ?>
         </span>
         <span class="tag tag-gray">
           <?php echo ucfirst($hostel['roomType']); ?> Room
