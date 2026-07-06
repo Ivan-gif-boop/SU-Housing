@@ -633,6 +633,7 @@ include __DIR__ . '/../includes/sidebar.php';
 $extraScripts = [
     'https://cdn.jsdelivr.net/npm/chart.js',
     '/SU-Housing/assets/js/dashboard.js',
+    '/SU-Housing/assets/js/feedback_admin.js',
 ];
 include __DIR__ . '/../includes/footer.php';
 ?>
