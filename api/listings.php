@@ -1,4 +1,5 @@
 <?php
+
 // api/listings.php
 // GET    — anyone logged in: browse/filter listings (FR-05, FR-06, FR-09)
 // POST   — admin only: create a new listing (FR-02)
@@ -149,7 +150,7 @@ if ($method === 'GET') {
 
     // Data comes from $_POST (multipart/form-data), not php://input
     $data = $_POST;
-
+    
     // Amenities arrive as JSON string from FormData
     if (!empty($data['amenities']) && is_string($data['amenities'])) {
         $data['amenities'] = json_decode($data['amenities'], true) ?? [];
