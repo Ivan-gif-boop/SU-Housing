@@ -364,7 +364,7 @@ include __DIR__ . '/../includes/sidebar.php';
           <?php foreach ($listings as $h): ?>
             <div class="hostel-card animate-fade-up"
                  data-name="<?php echo strtolower(htmlspecialchars($h['hostelName'])); ?>"
-                 data-neighbourhood="<?php echo htmlspecialchars($h['neighbourhood']); ?>"
+                 data-address="<?php echo htmlspecialchars($h['physicalAddress']); ?>"
                  data-price-min="<?php echo $h['priceMin']; ?>"
                  data-price-max="<?php echo $h['priceMax']; ?>"
                  data-room-type="<?php echo $h['roomType']; ?>"
@@ -398,7 +398,7 @@ include __DIR__ . '/../includes/sidebar.php';
                   <?php echo htmlspecialchars($h['hostelName']); ?>
                 </h3>
                 <div class="hostel-location">
-                   <?php echo htmlspecialchars($h['neighbourhood']); ?>
+                   <?php echo htmlspecialchars($h['physicalAddress']); ?>
                   <span class="hostel-rooms-pill">
                     · <?php echo $h['roomsAvailable']; ?> rooms
                   </span>
