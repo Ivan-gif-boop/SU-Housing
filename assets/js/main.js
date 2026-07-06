@@ -34,7 +34,7 @@ function showToast(message, type = 'default') {
   const toast = document.getElementById('toast');
   if (!toast) return;
 
-  const icons = { success: '✅', error: '❌', warning: '⚠️', default: 'ℹ️' };
+  const icons = { success: '', error: '', warning: '', default: '' };
   toast.innerHTML = `<span>${icons[type] || icons.default}</span> ${message}`;
   toast.style.display = 'flex';
 

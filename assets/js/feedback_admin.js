@@ -49,7 +49,7 @@ async function classifyFeedback(feedbackId, sentiment) {
     const res = await fetch(
       `/SU-Housing/api/feedback.php?id=${feedbackId}&action=classify`,
       {
-        method:  'POST',
+        method:  'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({ classification: sentiment }),
       }
