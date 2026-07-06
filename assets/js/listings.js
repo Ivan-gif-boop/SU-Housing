@@ -180,8 +180,16 @@ async function submitListingForm() {
     formData.append('image', imageInput.files[0]);
   }
 
-  const url    = '/SU-Housing/api/listings.php' + (isEdit ? `?id=${hostelId}` : '');
-  const method = isEdit ? 'PATCH' : 'POST';
+  const url = '/SU-Housing/api/listings.php' + (isEdit ? `?id=${hostelId}&_method=PATCH` : '');
+
+  // For edits, we send as POST with _method=PATCH in the FormData
+  // because PHP does not populate $_POST for multipart PATCH requests.
+  // For new listings, POST is correct as-is.
+  const method = 'POST';
+
+  if (isEdit) {
+    formData.append('_method', 'PATCH');
+  }
 
   try {
     // Do NOT set Content-Type header — browser sets it automatically
