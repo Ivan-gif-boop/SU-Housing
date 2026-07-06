@@ -232,21 +232,38 @@ include __DIR__ . '/../includes/sidebar.php';
             <label for="lName">Hostel Name</label>
             <input type="text" id="lName" name="hostelName"
                    class="form-control"
-                   placeholder="e.g. Hostel ABC" required/>
+                   placeholder="e.g. Sunrise Hostel" required/>
             <div class="form-error" id="err-lName"></div>
           </div>
 
-          <!-- Single physical address field — geocoded via Nominatim server-side -->
+          <!-- Map picker — click to place pin, address + coords auto-fill -->
           <div class="form-group">
-            <label for="lAddress">Physical Address</label>
+            <label>Location</label>
+
+            <!-- Map container -->
+            <div id="listingMapPicker"
+                 style="height:240px; border-radius:8px; border:1px solid var(--gray-200);
+                        margin-bottom:8px; z-index:0; background:var(--gray-100);">
+            </div>
+            <div class="form-hint" style="margin-bottom:8px;">
+              📍 Click on the map to place the hostel pin.
+              The address will fill in automatically.
+              You can also type the address manually below.
+            </div>
+
+            <!-- Address field — auto-filled by map click or typed manually -->
+            <label for="lAddress" style="font-size:13px; margin-bottom:4px; display:block;">
+              Physical Address
+            </label>
             <input type="text" id="lAddress" name="physicalAddress"
                    class="form-control"
-                   placeholder="e.g. Madaraka, next to Strathmore University, Nairobi"
+                   placeholder="Click the map above or type the address…"
                    required/>
-            <div class="form-hint">
-              Used to display the location and to geocode the map pin.
-            </div>
             <div class="form-error" id="err-lAddress"></div>
+
+            <!-- Hidden lat/lng — set by map click, sent with form -->
+            <input type="hidden" id="lLat" name="latitude"/>
+            <input type="hidden" id="lLng" name="longitude"/>
           </div>
 
           <div class="form-group">
@@ -407,7 +424,7 @@ include __DIR__ . '/../includes/sidebar.php';
         <p style="font-size:15px; color:var(--gray-600); line-height:1.6;"
            id="confirmMessage"></p>
         <div class="alert alert-warning" style="margin-top:16px; font-size:13px;">
-          The listing will be hidden from students but not permanently deleted.
+          ⚠️ The listing will be hidden from students but not permanently deleted.
           It can be restored later.
         </div>
       </div>
@@ -422,6 +439,10 @@ include __DIR__ . '/../includes/sidebar.php';
   </div>
 
 <?php
-$extraScripts = ['/SU-Housing/assets/js/listings.js'];
+$usesMap     = true; // tells header.php to load Leaflet CSS
+$extraScripts = [
+    'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js',
+    '/SU-Housing/assets/js/listings.js',
+];
 include __DIR__ . '/../includes/footer.php';
 ?>

@@ -23,7 +23,95 @@ function filterListings() {
   });
 }
 
-// ── Edit listing buttons — use event delegation to avoid inline onclick issues ──
+// ── Listing map picker ──
+// Strathmore University coords — map starts centered here
+const SU_CENTER = [-1.3100, 36.8126];
+let listingMap    = null;
+let listingMarker = null;
+
+function initListingMap() {
+  // Only init once — Leaflet throws if you re-init the same container
+  if (listingMap) {
+    listingMap.invalidateSize();
+    return;
+  }
+
+  listingMap = L.map('listingMapPicker').setView(SU_CENTER, 15);
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    maxZoom: 19,
+  }).addTo(listingMap);
+
+  // Click handler — drop pin and reverse geocode
+  listingMap.on('click', async function(e) {
+    const { lat, lng } = e.latlng;
+
+    // Move or create marker
+    if (listingMarker) {
+      listingMarker.setLatLng([lat, lng]);
+    } else {
+      listingMarker = L.marker([lat, lng], {
+        icon: L.divIcon({
+          className: '',
+          html: `<div style="
+            background:var(--amber,#e8a020);
+            width:32px; height:32px;
+            border-radius:50% 50% 50% 0;
+            transform:rotate(-45deg);
+            border:3px solid white;
+            box-shadow:0 2px 8px rgba(0,0,0,.3);
+          "></div>`,
+          iconSize: [32, 32],
+          iconAnchor: [16, 32],
+        }),
+      }).addTo(listingMap);
+    }
+
+    // Store coordinates in hidden fields
+    document.getElementById('lLat').value = lat.toFixed(8);
+    document.getElementById('lLng').value = lng.toFixed(8);
+
+    // Reverse geocode to get address string
+    try {
+      const res  = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`,
+        { headers: { 'Accept-Language': 'en' } }
+      );
+      const data = await res.json();
+
+      if (data && data.display_name) {
+        // Use a shortened version: road + suburb + city
+        const a = data.address || {};
+        const parts = [
+          a.road || a.pedestrian || a.footway || '',
+          a.suburb || a.neighbourhood || a.quarter || '',
+          a.city || a.town || a.village || 'Nairobi',
+        ].filter(Boolean);
+
+        document.getElementById('lAddress').value =
+          parts.length > 0 ? parts.join(', ') : data.display_name;
+      }
+    } catch (err) {
+      // Reverse geocode failed — admin can type address manually
+      console.warn('Reverse geocode failed:', err);
+    }
+  });
+}
+
+// Init map when modal opens — use a small delay so the
+// modal is fully visible before Leaflet measures the container
+const listingModalEl = document.getElementById('listingModal');
+if (listingModalEl) {
+  const observer = new MutationObserver(() => {
+    if (listingModalEl.classList.contains('open')) {
+      setTimeout(initListingMap, 100);
+    }
+  });
+  observer.observe(listingModalEl, { attributes: true, attributeFilter: ['class'] });
+}
+
+// ── Edit listing buttons — use event delegation ──
 document.addEventListener('click', function(e) {
   const btn = e.target.closest('.edit-listing-btn');
   if (!btn) return;
@@ -48,15 +136,19 @@ function editListing(listing) {
   document.getElementById('lName').value                   = listing.hostelName;
   document.getElementById('lAddress').value                = listing.physicalAddress;
   document.getElementById('lDesc').value                   = listing.description;
-  document.getElementById('lPriceMin').value                = listing.priceMin;
-  document.getElementById('lPriceMax').value                = listing.priceMax;
-  document.getElementById('lRoomType').value                = listing.roomType;
-  document.getElementById('lRooms').value                   = listing.roomsAvailable;
-  document.getElementById('lGenderPolicy').value             = listing.genderPolicy || '';
-  document.getElementById('lEnvironmentType').value          = listing.environmentType || '';
-  document.getElementById('lCurfewPolicy').value              = listing.curfewPolicy || '';
-  document.getElementById('lLandlordName').value              = listing.landlordName;
-  document.getElementById('lLandlordContact').value           = listing.landlordContact;
+  document.getElementById('lPriceMin').value               = listing.priceMin;
+  document.getElementById('lPriceMax').value               = listing.priceMax;
+  document.getElementById('lRoomType').value               = listing.roomType;
+  document.getElementById('lRooms').value                  = listing.roomsAvailable;
+  document.getElementById('lGenderPolicy').value           = listing.genderPolicy    || '';
+  document.getElementById('lEnvironmentType').value        = listing.environmentType || '';
+  document.getElementById('lCurfewPolicy').value           = listing.curfewPolicy    || '';
+  document.getElementById('lLandlordName').value           = listing.landlordName;
+  document.getElementById('lLandlordContact').value        = listing.landlordContact;
+
+  // Pre-fill hidden lat/lng fields
+  document.getElementById('lLat').value = listing.latitude  || '';
+  document.getElementById('lLng').value = listing.longitude || '';
 
   // Show current image preview if the listing has one
   const preview = document.getElementById('currentImagePreview');
@@ -79,6 +171,37 @@ function editListing(listing) {
   });
 
   openModal('listingModal');
+
+  // After modal opens, position the map pin on the existing coordinates
+  setTimeout(() => {
+    initListingMap();
+    if (listing.latitude && listing.longitude) {
+      const lat = parseFloat(listing.latitude);
+      const lng = parseFloat(listing.longitude);
+
+      listingMap.setView([lat, lng], 16);
+
+      if (listingMarker) {
+        listingMarker.setLatLng([lat, lng]);
+      } else {
+        listingMarker = L.marker([lat, lng], {
+          icon: L.divIcon({
+            className: '',
+            html: `<div style="
+              background:var(--amber,#e8a020);
+              width:32px; height:32px;
+              border-radius:50% 50% 50% 0;
+              transform:rotate(-45deg);
+              border:3px solid white;
+              box-shadow:0 2px 8px rgba(0,0,0,.3);
+            "></div>`,
+            iconSize: [32, 32],
+            iconAnchor: [16, 32],
+          }),
+        }).addTo(listingMap);
+      }
+    }
+  }, 150);
 }
 
 // ── Reset modal to add mode ──
@@ -87,10 +210,22 @@ document.querySelector('[onclick="openModal(\'listingModal\')"]')
   document.getElementById('modalTitle').textContent = 'Add New Listing';
   document.getElementById('listingForm')?.reset();
   document.getElementById('editHostelId').value = '';
+  document.getElementById('lLat').value = '';
+  document.getElementById('lLng').value = '';
   document.querySelectorAll('.modal-amenity').forEach(cb => cb.checked = false);
   const preview = document.getElementById('currentImagePreview');
   if (preview) preview.style.display = 'none';
   clearAllErrors();
+
+  // Reset map to Strathmore center and remove pin
+  setTimeout(() => {
+    initListingMap();
+    listingMap.setView(SU_CENTER, 15);
+    if (listingMarker) {
+      listingMap.removeLayer(listingMarker);
+      listingMarker = null;
+    }
+  }, 150);
 });
 
 // ── Form validation helpers ──
@@ -187,6 +322,12 @@ async function submitListingForm() {
   formData.append('landlordContact', document.getElementById('lLandlordContact').value.trim());
   // Amenities sent as JSON string since FormData can't send arrays natively
   formData.append('amenities',       JSON.stringify(amenities));
+
+  // Include lat/lng from map picker if set
+  const lat = document.getElementById('lLat').value;
+  const lng = document.getElementById('lLng').value;
+  if (lat) formData.append('latitude',  lat);
+  if (lng) formData.append('longitude', lng);
 
   // Attach image file if selected
   if (imageInput?.files.length > 0) {

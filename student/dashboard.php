@@ -268,7 +268,7 @@ include __DIR__ . '/../includes/sidebar.php';
                 <?php echo htmlspecialchars($h['hostelName']); ?>
               </h3>
               <div class="hostel-location">
-                📍 <?php echo htmlspecialchars($h['physicalAddress']); ?>
+                 <?php echo htmlspecialchars($h['physicalAddress']); ?>
               </div>
               <div class="hostel-amenities">
                 <?php foreach (array_slice($h['amenities'], 0, 3) as $amenity): ?>

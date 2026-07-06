@@ -23,9 +23,21 @@ $profStmt->execute([$studentId]);
 $profile    = $profStmt->fetch();
 $hasProfile = (bool) $profile;
 
+// ── Gender hard-filter — applied unconditionally for all students ──
+$genderStmt = $db->prepare('SELECT gender FROM students WHERE studentId = ?');
+$genderStmt->execute([$studentId]);
+$studentGender = $genderStmt->fetchColumn();
+
 // ── Build filter conditions from GET params ──
 $conditions = ['l.isActive = 1'];
 $params     = [];
+
+// Apply gender filter unconditionally based on student's own gender
+if ($studentGender === 'male') {
+    $conditions[] = "l.genderPolicy IN ('male_only', 'mixed')";
+} elseif ($studentGender === 'female') {
+    $conditions[] = "l.genderPolicy IN ('female_only', 'mixed')";
+}
 
 if (!empty($_GET['q'])) {
     $conditions[] = '(l.hostelName LIKE ? OR l.physicalAddress LIKE ? OR l.description LIKE ?)';
@@ -59,6 +71,7 @@ $where = implode(' AND ', $conditions);
 $stmt  = $db->prepare(
     "SELECT hostelId, hostelName, physicalAddress,
             priceMin, priceMax, roomType, amenities, roomsAvailable,
+            genderPolicy, environmentType, curfewPolicy,
             latitude, longitude, imagePath
      FROM hostel_listings l
      WHERE $where
@@ -70,33 +83,10 @@ $listings = $stmt->fetchAll();
 // Decode amenities + score against profile (FR-09)
 foreach ($listings as &$h) {
     $h['amenities']  = json_decode($h['amenities'], true) ?? [];
-    // 'location' alias so browse.js data-attribute works
-    $h['location']   = $h['physicalAddress'];
     $h['matchScore'] = 0;
 
     if ($profile) {
-        $score    = 0;
-        $maxScore = 0;
-
-        if ($profile['budgetMin'] !== null && $profile['budgetMax'] !== null) {
-            $maxScore++;
-            if ($h['priceMin'] <= $profile['budgetMax'] &&
-                $h['priceMax'] >= $profile['budgetMin']) {
-                $score++;
-            }
-        }
-        if ($profile['roomTypePreference'] !== null) {
-            $maxScore++;
-            if ($h['roomType'] === $profile['roomTypePreference']) $score++;
-        }
-        if ($profile['genderPreference'] !== null && isset($h['genderPolicy'])) {
-            $maxScore++;
-            if ($h['genderPolicy'] === $profile['genderPreference']) $score++;
-        }
-
-        $h['matchScore'] = $maxScore > 0
-            ? (int) round(($score / $maxScore) * 100)
-            : 0;
+        $h['matchScore'] = scoreListingAgainstProfile($h, $profile);
     }
 }
 unset($h);
@@ -104,6 +94,70 @@ unset($h);
 // Sort by match score if profile exists
 if ($hasProfile) {
     usort($listings, fn($a, $b) => $b['matchScore'] <=> $a['matchScore']);
+}
+
+// Full scoring function — identical to api/listings.php and student/dashboard.php
+// so all three pages rank listings consistently
+function scoreListingAgainstProfile(array $listing, array $profile): int {
+    $score = 0; $maxScore = 0;
+
+    if ($profile['budgetMin'] !== null && $profile['budgetMax'] !== null) {
+        $maxScore++;
+        if ($listing['priceMin'] <= $profile['budgetMax'] &&
+            $listing['priceMax'] >= $profile['budgetMin']) $score++;
+    }
+    if (!empty($profile['roomTypePreference'])) {
+        $maxScore++;
+        if ($listing['roomType'] === $profile['roomTypePreference']) $score++;
+    }
+    if (!empty($profile['genderPreference'])) {
+        $maxScore++;
+        if ($listing['genderPolicy'] === $profile['genderPreference']) $score++;
+    }
+    if (!empty($profile['preferredLocation'])) {
+        $maxScore++;
+        if (stripos($listing['physicalAddress'], $profile['preferredLocation']) !== false) $score++;
+    }
+    if (!empty($profile['noiseTolerance'])) {
+        $maxScore++;
+        if ($listing['environmentType'] === $profile['noiseTolerance']) $score++;
+    }
+    if (!empty($profile['studyHabits'])) {
+        $maxScore++;
+        switch ($profile['studyHabits']) {
+            case 'early_riser':
+                if ($listing['environmentType'] === 'quiet' &&
+                    $listing['curfewPolicy'] === 'before_10pm') $score++;
+                break;
+            case 'night_owl':
+                if ($listing['curfewPolicy'] === 'no_curfew') $score++;
+                break;
+            case 'flexible': $score++; break;
+        }
+    }
+    if (!empty($profile['sleepSchedule'])) {
+        $maxScore++;
+        switch ($profile['sleepSchedule']) {
+            case 'before_10pm':
+                if ($listing['curfewPolicy'] === 'before_10pm') $score++;
+                break;
+            case '10pm_12am':
+                if (in_array($listing['curfewPolicy'], ['before_10pm','before_midnight'])) $score++;
+                break;
+            case 'after_midnight':
+                if ($listing['curfewPolicy'] === 'no_curfew') $score++;
+                break;
+        }
+    }
+    if (!empty($profile['curfewPreference'])) {
+        $maxScore++;
+        if ($listing['curfewPolicy'] === $profile['curfewPreference']) $score++;
+    }
+    if (!empty($profile['environmentType'])) {
+        $maxScore++;
+        if ($listing['environmentType'] === $profile['environmentType']) $score++;
+    }
+    return $maxScore > 0 ? (int) round(($score / $maxScore) * 100) : 0;
 }
 
 // ── Page meta ──
@@ -177,7 +231,6 @@ include __DIR__ . '/../includes/sidebar.php';
         <div class="filter-group">
           <label class="filter-label">Search</label>
           <div class="input-wrap">
-            <span class="input-icon"></span>
             <input
               type="text"
               id="filterSearch"
@@ -190,15 +243,15 @@ include __DIR__ . '/../includes/sidebar.php';
 
         <!-- Neighbourhood / Location -->
         <div class="filter-group">
-          <label class="filter-label">Location</label>
-          <select id="filterLocation"
+          <label class="filter-label">Neighbourhood</label>
+          <select id="filterNeighbourhood"
                   class="form-control"
                   onchange="applyFilters()">
-            <option value="">All Locations</option>
+            <option value="">All Neighbourhoods</option>
             <?php
             // Build neighbourhood options dynamically from DB results
             $neighbourhoods = array_unique(
-                array_column($listings, 'physicalAddress')
+                array_column($listings, 'neighbourhood')
             );
             sort($neighbourhoods);
             foreach ($neighbourhoods as $nbh):
@@ -311,7 +364,7 @@ include __DIR__ . '/../includes/sidebar.php';
           <?php foreach ($listings as $h): ?>
             <div class="hostel-card animate-fade-up"
                  data-name="<?php echo strtolower(htmlspecialchars($h['hostelName'])); ?>"
-                 data-location="<?php echo htmlspecialchars($h['physicalAddress']); ?>"
+                 data-neighbourhood="<?php echo htmlspecialchars($h['neighbourhood']); ?>"
                  data-price-min="<?php echo $h['priceMin']; ?>"
                  data-price-max="<?php echo $h['priceMax']; ?>"
                  data-room-type="<?php echo $h['roomType']; ?>"
@@ -326,7 +379,7 @@ include __DIR__ . '/../includes/sidebar.php';
                          alt="<?php echo htmlspecialchars($h['hostelName']); ?>"
                          style="width:100%; height:100%; object-fit:cover;"/>
                   <?php else: ?>
-                    <span class="hostel-card-emoji"></span>
+                    <span class="hostel-card-emoji">🏠</span>
                   <?php endif; ?>
                 </div>
                 <?php if ($hasProfile): ?>
@@ -345,7 +398,7 @@ include __DIR__ . '/../includes/sidebar.php';
                   <?php echo htmlspecialchars($h['hostelName']); ?>
                 </h3>
                 <div class="hostel-location">
-                   <?php echo htmlspecialchars($h['physicalAddress']); ?>
+                   <?php echo htmlspecialchars($h['neighbourhood']); ?>
                   <span class="hostel-rooms-pill">
                     · <?php echo $h['roomsAvailable']; ?> rooms
                   </span>
@@ -381,7 +434,6 @@ include __DIR__ . '/../includes/sidebar.php';
         <!-- Empty state -->
         <div class="empty-state" id="emptyState"
              style="display:<?php echo empty($listings) ? 'flex' : 'none'; ?>;">
-          <div class="empty-icon"></div>
           <h3>No hostels found</h3>
           <p>Try adjusting your filters or search term.</p>
           <button class="btn btn-outline mt-16" onclick="clearFilters()">

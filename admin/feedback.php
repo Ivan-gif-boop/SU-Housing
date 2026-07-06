@@ -86,8 +86,6 @@ include __DIR__ . '/../includes/sidebar.php';
       <div class="card-body">
         <p style="font-size:13px; color:var(--gray-500); margin-bottom:16px;">
           Assign each student to the hostel they currently occupy.
-          Students can only submit feedback for the hostel they are
-          assigned to here.
         </p>
         <div class="table-wrap">
           <table>

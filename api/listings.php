@@ -209,22 +209,26 @@ if ($method === 'GET') {
         exit;
     }
 
-    // Geocode using Nominatim
-    $lat = null;
-    $lng = null;
+    // Use coordinates from map picker if provided,
+    // otherwise fall back to Nominatim geocoding
+    $lat = !empty($data['latitude'])  ? (float) $data['latitude']  : null;
+    $lng = !empty($data['longitude']) ? (float) $data['longitude'] : null;
 
-    $address = urlencode($data['physicalAddress'] . ', Nairobi, Kenya');
-    $geoUrl  = "https://nominatim.openstreetmap.org/search"
-             . "?q=$address&format=json&limit=1";
+    if ($lat === null || $lng === null) {
+        // Geocode using Nominatim as fallback
+        $address = urlencode($data['physicalAddress'] . ', Nairobi, Kenya');
+        $geoUrl  = "https://nominatim.openstreetmap.org/search"
+                 . "?q=$address&format=json&limit=1";
 
-    $context = stream_context_create([
-        'http' => ['header' => 'User-Agent: SUhousing/1.0 (student project)'],
-    ]);
+        $context = stream_context_create([
+            'http' => ['header' => 'User-Agent: SUhousing/1.0 (student project)'],
+        ]);
 
-    $geoResp = json_decode(@file_get_contents($geoUrl, false, $context), true);
-    if (!empty($geoResp)) {
-        $lat = (float) $geoResp[0]['lat'];
-        $lng = (float) $geoResp[0]['lon'];
+        $geoResp = json_decode(@file_get_contents($geoUrl, false, $context), true);
+        if (!empty($geoResp)) {
+            $lat = (float) $geoResp[0]['lat'];
+            $lng = (float) $geoResp[0]['lon'];
+        }
     }
 
     // Insert first to get the hostelId for naming the image file
@@ -315,7 +319,7 @@ if ($method === 'GET') {
     $allowed = [
         'hostelName', 'physicalAddress', 'description', 'priceMin', 'priceMax',
         'roomType', 'amenities', 'roomsAvailable', 'landlordName', 'landlordContact',
-        'genderPolicy', 'environmentType', 'curfewPolicy',
+        'genderPolicy', 'environmentType', 'curfewPolicy', 'latitude', 'longitude',
     ];
 
     $sets   = [];
