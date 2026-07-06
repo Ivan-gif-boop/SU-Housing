@@ -23,6 +23,19 @@ function filterListings() {
   });
 }
 
+// ── Edit listing buttons — use event delegation to avoid inline onclick issues ──
+document.addEventListener('click', function(e) {
+  const btn = e.target.closest('.edit-listing-btn');
+  if (!btn) return;
+  try {
+    const listing = JSON.parse(btn.dataset.listing);
+    editListing(listing);
+  } catch (err) {
+    console.error('Failed to parse listing data:', err);
+    showToast('Failed to open listing editor.', 'error');
+  }
+});
+
 // ── Open add modal ──
 function openModal(id) {
   document.getElementById(id)?.classList.add('open');

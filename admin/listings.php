@@ -122,7 +122,7 @@ include __DIR__ . '/../includes/sidebar.php';
                   <?php else: ?>
                     <div style="width:56px; height:48px; background:var(--gray-100);
                                 border-radius:6px; display:flex; align-items:center;
-                                justify-content:center; font-size:20px;"></div>
+                                justify-content:center; font-size:20px;">🏠</div>
                   <?php endif; ?>
                 </td>
                 <td>
@@ -145,10 +145,10 @@ include __DIR__ . '/../includes/sidebar.php';
                 <td>
                   <div style="display:flex; gap:6px;">
                     <button
-                      class="btn btn-outline btn-sm"
-                      onclick='editListing(<?php echo json_encode($l); ?>)'
+                      class="btn btn-outline btn-sm edit-listing-btn"
+                      data-listing="<?php echo htmlspecialchars(json_encode($l), ENT_QUOTES, 'UTF-8'); ?>"
                     >
-                       Edit
+                      ✏️ Edit
                     </button>
                     <?php if ($l['isActive']): ?>
                       <button
@@ -180,7 +180,7 @@ include __DIR__ . '/../includes/sidebar.php';
 
         <?php if (empty($listings)): ?>
           <div class="empty-state" style="padding:48px;">
-            <div class="empty-icon"></div>
+            <div class="empty-icon">🏠</div>
             <h3>No listings yet</h3>
             <p>Click "Add New Listing" to publish your first hostel.</p>
           </div>
@@ -232,7 +232,7 @@ include __DIR__ . '/../includes/sidebar.php';
             <label for="lName">Hostel Name</label>
             <input type="text" id="lName" name="hostelName"
                    class="form-control"
-                   placeholder="e.g. Sunrise Hostel" required/>
+                   placeholder="e.g. Hostel ABC" required/>
             <div class="form-error" id="err-lName"></div>
           </div>
 
