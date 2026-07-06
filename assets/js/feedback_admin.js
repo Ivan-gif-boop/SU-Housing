@@ -47,7 +47,7 @@ async function classifyFeedback(feedbackId, sentiment) {
 
   try {
     const res = await fetch(
-      `/SU-Housing/api/feedback.php?id=${feedbackId}&action=classify`,
+      `/SU-Housing/api/feedback.php?id=${feedbackId}`,
       {
         method:  'PATCH',
         headers: { 'Content-Type': 'application/json' },

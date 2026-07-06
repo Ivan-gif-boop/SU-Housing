@@ -30,18 +30,25 @@ let listingMap    = null;
 let listingMarker = null;
 
 function initListingMap() {
-  // Only init once — Leaflet throws if you re-init the same container
+  // If already initialised, just force a size recalculation
+  // in case the modal was resized or re-opened
   if (listingMap) {
-    listingMap.invalidateSize();
+    setTimeout(() => listingMap.invalidateSize(), 200);
     return;
   }
 
-  listingMap = L.map('listingMapPicker').setView(SU_CENTER, 15);
+  listingMap = L.map('listingMapPicker', {
+    // Prevent map from capturing scroll inside the modal
+    scrollWheelZoom: false,
+  }).setView(SU_CENTER, 15);
 
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
     maxZoom: 19,
   }).addTo(listingMap);
+
+  // Force size recalc after tiles have a chance to load
+  setTimeout(() => listingMap.invalidateSize(), 300);
 
   // Click handler — drop pin and reverse geocode
   listingMap.on('click', async function(e) {
@@ -81,7 +88,6 @@ function initListingMap() {
       const data = await res.json();
 
       if (data && data.display_name) {
-        // Use a shortened version: road + suburb + city
         const a = data.address || {};
         const parts = [
           a.road || a.pedestrian || a.footway || '',
@@ -93,7 +99,6 @@ function initListingMap() {
           parts.length > 0 ? parts.join(', ') : data.display_name;
       }
     } catch (err) {
-      // Reverse geocode failed — admin can type address manually
       console.warn('Reverse geocode failed:', err);
     }
   });
@@ -105,7 +110,12 @@ const listingModalEl = document.getElementById('listingModal');
 if (listingModalEl) {
   const observer = new MutationObserver(() => {
     if (listingModalEl.classList.contains('open')) {
-      setTimeout(initListingMap, 100);
+      // Wait for modal CSS transition to fully complete
+      // before Leaflet measures the container dimensions
+      setTimeout(() => {
+        initListingMap();
+        if (listingMap) listingMap.invalidateSize();
+      }, 300);
     }
   });
   observer.observe(listingModalEl, { attributes: true, attributeFilter: ['class'] });
