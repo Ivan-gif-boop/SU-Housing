@@ -13,7 +13,14 @@ session_start();
 requireLogin();
 
 $method = $_SERVER['REQUEST_METHOD'];
-$db     = getDB();
+
+// Method spoofing — JS sends POST with _method=PATCH in FormData
+// because PHP doesn't populate $_POST for multipart PATCH requests
+if ($method === 'POST' && ($_GET['_method'] ?? '') === 'PATCH') {
+    $method = 'PATCH';
+}
+
+$db = getDB();
 
 // ─────────────────────────────────────────
 // GET — browse/filter listings (students + admins)
@@ -297,7 +304,8 @@ if ($method === 'GET') {
         exit;
     }
 
-    // Edit comes from $_POST (multipart/form-data)
+    // With method spoofing, the request arrives as POST so PHP
+    // populates $_POST normally from the multipart/form-data body
     $data = $_POST;
 
     if (!empty($data['amenities']) && is_string($data['amenities'])) {
