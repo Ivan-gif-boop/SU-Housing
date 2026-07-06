@@ -44,6 +44,11 @@ img {
   display: block;
 }
 
+.leaflet-container img {
+  max-width: none;
+  display: revert; /* or omit if not needed */
+}
+
 /* ── Headings ── */
 h1, h2, h3, h4 {
   font-family: var(--font-display);

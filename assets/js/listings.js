@@ -47,8 +47,11 @@ function initListingMap() {
     maxZoom: 19,
   }).addTo(listingMap);
 
-  // Force size recalc after tiles have a chance to load
-  setTimeout(() => listingMap.invalidateSize(), 300);
+  // Force size recalc at multiple points to ensure
+  // tiles fill the full container after modal transition
+  [200, 400, 700].forEach(delay => {
+    setTimeout(() => listingMap.invalidateSize({ animate: false }), delay);
+  });
 
   // Click handler — drop pin and reverse geocode
   listingMap.on('click', async function(e) {
@@ -110,16 +113,28 @@ const listingModalEl = document.getElementById('listingModal');
 if (listingModalEl) {
   const observer = new MutationObserver(() => {
     if (listingModalEl.classList.contains('open')) {
-      // Wait for modal CSS transition to fully complete
-      // before Leaflet measures the container dimensions
-      setTimeout(() => {
-        initListingMap();
-        if (listingMap) listingMap.invalidateSize();
-      }, 300);
+      // Call invalidateSize at multiple intervals to catch
+      // different phases of the modal transition completing
+      [100, 250, 400, 600].forEach(delay => {
+        setTimeout(() => {
+          if (listingMap) {
+            listingMap.invalidateSize({ animate: false });
+          } else {
+            initListingMap();
+          }
+        }, delay);
+      });
     }
   });
   observer.observe(listingModalEl, { attributes: true, attributeFilter: ['class'] });
 }
+
+// Catch-all: if window is resized while modal is open, fix map
+window.addEventListener('resize', () => {
+  if (listingMap && document.getElementById('listingModal')?.classList.contains('open')) {
+    listingMap.invalidateSize({ animate: false });
+  }
+});
 
 // ── Edit listing buttons — use event delegation ──
 document.addEventListener('click', function(e) {
