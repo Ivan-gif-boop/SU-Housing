@@ -1,6 +1,6 @@
 // assets/js/feedback_admin.js
 // FR-11: classify feedback as positive or negative
-//        → PATCH /SU-Housing/api/feedback.php?id={id}
+//        → POST /SU-Housing/api/feedback.php?id={id}&action=classify
 
 // ── Tab switching ──
 function switchFeedbackTab(btn, tabId) {
@@ -47,9 +47,9 @@ async function classifyFeedback(feedbackId, sentiment) {
 
   try {
     const res = await fetch(
-      `/SU-Housing/api/feedback.php?id=${feedbackId}`,
+      `/SU-Housing/api/feedback.php?id=${feedbackId}&action=classify`,
       {
-        method:  'PATCH',
+        method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({ classification: sentiment }),
       }
@@ -117,6 +117,83 @@ function applyClassification(card, sentiment) {
     `Feedback classified as ${sentiment}.`,
     sentiment === 'positive' ? 'success' : 'default'
   );
+}
+
+// ── Remove classification — sets classification back to NULL (pending) ──
+async function removeClassification(feedbackId) {
+  const card = document.getElementById('fbc-' + feedbackId);
+  if (!card) return;
+
+  // Disable the button immediately
+  const btn = card.querySelector('button');
+  if (btn) { btn.disabled = true; btn.style.opacity = '0.6'; }
+
+  try {
+    const res = await fetch(
+      `/SU-Housing/api/feedback.php?id=${feedbackId}`,
+      {
+        method:  'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        // Send null to clear the classification
+        body: JSON.stringify({ classification: null }),
+      }
+    );
+    const data = await res.json();
+
+    if (res.ok) {
+      // Update the badge back to pending
+      const badge = card.querySelector('.badge');
+      if (badge) {
+        badge.className   = 'badge badge-amber';
+        badge.textContent = '⏳ Pending';
+      }
+
+      // Replace remove button with classify buttons
+      const actions = card.querySelector('.fbc-actions');
+      if (actions) {
+        actions.outerHTML = `
+          <div class="fbc-actions" style="margin-top:8px;">
+            <button class="btn btn-success btn-sm"
+              onclick="classifyFeedback(${feedbackId}, 'positive')">
+              ✓ Positive
+            </button>
+            <button class="btn btn-danger btn-sm"
+              onclick="classifyFeedback(${feedbackId}, 'negative')">
+              ✗ Negative
+            </button>
+          </div>`;
+      }
+
+      // Update card data attribute
+      card.dataset.tab = 'pending';
+
+      // If on classified tab, fade the card out
+      const activeTab = document.querySelector(
+        '.feedback-tab-content[style="display: block;"]'
+      );
+      if (activeTab?.id === 'tab-classified') {
+        setTimeout(() => {
+          card.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+          card.style.opacity    = '0';
+          card.style.transform  = 'translateY(-8px)';
+          setTimeout(() => {
+            card.remove();
+            updatePendingCount();
+          }, 400);
+        }, 700);
+      }
+
+      updatePendingCount();
+      showToast('Classification removed — feedback returned to pending.', 'default');
+
+    } else {
+      if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
+      showToast(data.error || 'Failed to remove classification.', 'error');
+    }
+  } catch (err) {
+    if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
+    showToast('Network error. Please try again.', 'error');
+  }
 }
 
 function updatePendingCount() {

@@ -5,14 +5,9 @@
 ?>
 <div class="feedback-classify-card"
      id="fbc-<?php echo $fb['feedbackId']; ?>"
-     data-hostel="<?php echo htmlspecialchars(
-       strtolower($fb['hostelName'])
-     ); ?>"
-     data-student="<?php echo htmlspecialchars(
-       strtolower($fb['fullName'])
-     ); ?>"
-     data-tab="<?php echo $isPending
-       ? 'pending' : 'classified'; ?>">
+     data-hostel="<?php echo htmlspecialchars(strtolower($fb['hostelName'])); ?>"
+     data-student="<?php echo htmlspecialchars(strtolower($fb['fullName'])); ?>"
+     data-tab="<?php echo $isPending ? 'pending' : 'classified'; ?>">
 
   <div class="fbc-header">
     <div>
@@ -34,7 +29,7 @@
     <?php elseif ($fb['sentiment'] === 'negative'): ?>
       <span class="badge badge-red">✗ Negative</span>
     <?php else: ?>
-      <span class="badge badge-amber"> Pending</span>
+      <span class="badge badge-amber">⏳ Pending</span>
     <?php endif; ?>
   </div>
 
@@ -43,31 +38,33 @@
     "<?php echo nl2br(htmlspecialchars($fb['submissionText'])); ?>"
   </p>
 
-  <!-- Classify actions — only shown for pending -->
+  <!-- Actions -->
   <?php if ($isPending): ?>
+    <!-- Pending — show classify buttons -->
     <div class="fbc-actions">
       <button
         class="btn btn-success btn-sm"
-        onclick="classifyFeedback(
-          <?php echo $fb['feedbackId']; ?>,
-          'positive'
-        )"
+        onclick="classifyFeedback(<?php echo $fb['feedbackId']; ?>, 'positive')"
       >
         ✓ Positive
       </button>
       <button
         class="btn btn-danger btn-sm"
-        onclick="classifyFeedback(
-          <?php echo $fb['feedbackId']; ?>,
-          'negative'
-        )"
+        onclick="classifyFeedback(<?php echo $fb['feedbackId']; ?>, 'negative')"
       >
         ✗ Negative
       </button>
     </div>
   <?php else: ?>
-    <div style="font-size:12px; color:var(--gray-400);
-                 margin-top:8px;">
+    <!-- Classified — show remove classification button -->
+    <div class="fbc-actions" style="margin-top:8px;">
+      <button
+        class="btn btn-outline btn-sm"
+        style="font-size:12px; color:var(--gray-500);"
+        onclick="removeClassification(<?php echo $fb['feedbackId']; ?>)"
+      >
+        ↩ Remove Classification
+      </button>
     </div>
   <?php endif; ?>
 

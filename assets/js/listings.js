@@ -23,6 +23,19 @@ function filterListings() {
   });
 }
 
+// ── Edit listing buttons — use event delegation to avoid inline onclick issues ──
+document.addEventListener('click', function(e) {
+  const btn = e.target.closest('.edit-listing-btn');
+  if (!btn) return;
+  try {
+    const listing = JSON.parse(btn.dataset.listing);
+    editListing(listing);
+  } catch (err) {
+    console.error('Failed to parse listing data:', err);
+    showToast('Failed to open listing editor.', 'error');
+  }
+});
+
 // ── Open add modal ──
 function openModal(id) {
   document.getElementById(id)?.classList.add('open');
@@ -180,8 +193,16 @@ async function submitListingForm() {
     formData.append('image', imageInput.files[0]);
   }
 
-  const url    = '/SU-Housing/api/listings.php' + (isEdit ? `?id=${hostelId}` : '');
-  const method = isEdit ? 'PATCH' : 'POST';
+  const url = '/SU-Housing/api/listings.php' + (isEdit ? `?id=${hostelId}&_method=PATCH` : '');
+
+  // For edits, we send as POST with _method=PATCH in the FormData
+  // because PHP does not populate $_POST for multipart PATCH requests.
+  // For new listings, POST is correct as-is.
+  const method = 'POST';
+
+  if (isEdit) {
+    formData.append('_method', 'PATCH');
+  }
 
   try {
     // Do NOT set Content-Type header — browser sets it automatically
