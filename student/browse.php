@@ -243,21 +243,21 @@ include __DIR__ . '/../includes/sidebar.php';
 
         <!-- Neighbourhood / Location -->
         <div class="filter-group">
-          <label class="filter-label">Neighbourhood</label>
-          <select id="filterNeighbourhood"
+          <label class="filter-label">Location</label>
+          <select id="filterLocation"
                   class="form-control"
                   onchange="applyFilters()">
-            <option value="">All Neighbourhoods</option>
+            <option value="">All Locations</option>
             <?php
-            // Build neighbourhood options dynamically from DB results
-            $neighbourhoods = array_unique(
-                array_column($listings, 'neighbourhood')
+            // Build location options dynamically from DB results
+            $locations = array_unique(
+                array_column($listings, 'physicalAddress')
             );
-            sort($neighbourhoods);
-            foreach ($neighbourhoods as $nbh):
+            sort($locations);
+            foreach ($locations as $loc):
             ?>
-              <option value="<?php echo htmlspecialchars($nbh); ?>">
-                <?php echo htmlspecialchars($nbh); ?>
+              <option value="<?php echo htmlspecialchars($loc); ?>">
+                <?php echo htmlspecialchars($loc); ?>
               </option>
             <?php endforeach; ?>
           </select>
@@ -379,7 +379,7 @@ include __DIR__ . '/../includes/sidebar.php';
                          alt="<?php echo htmlspecialchars($h['hostelName']); ?>"
                          style="width:100%; height:100%; object-fit:cover;"/>
                   <?php else: ?>
-                    <span class="hostel-card-emoji">🏠</span>
+                    <span class="hostel-card-emoji"></span>
                   <?php endif; ?>
                 </div>
                 <?php if ($hasProfile): ?>
