@@ -20,6 +20,8 @@ $allFeedback = $db->query(
             f.submissionText,
             f.submittedAt,
             f.classification  AS sentiment,
+            f.adminResponse,
+            f.respondedAt,
             f.hostelAccuracy,
             f.propertyCondition,
             f.issuesEncountered,

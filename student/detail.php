@@ -71,13 +71,7 @@ include __DIR__ . '/../includes/sidebar.php';
         </span>
       </div>
     </div>
-    <div class="page-actions">
-      <a href="/SU-Housing/student/feedback.php?hostelId=<?php
-           echo $hostel['hostelId']; ?>"
-         class="btn btn-primary">
-        Submit Feedback
-      </a>
-    </div>
+   
   </div>
 
   <div class="page-body">

@@ -15,9 +15,9 @@ requireLogin();
 $method = $_SERVER['REQUEST_METHOD'];
 $db     = getDB();
 
-// ─────────────────────────────────────────
+// ──────────────────────────────────────────────
 // GET — student's own feedback, or admin's view of all feedback
-// ─────────────────────────────────────────
+// ──────────────────────────────────────────────
 if ($method === 'GET') {
 
     // Admin view — all feedback, optionally filtered by hostel
@@ -94,9 +94,9 @@ if ($method === 'GET') {
 
     echo json_encode(['feedback' => $stmt->fetchAll()]);
 
-// ─────────────────────────────────────────
+// ──────────────────────────────────────────────
 // POST — student submits feedback (FR-10)
-// ─────────────────────────────────────────
+// ──────────────────────────────────────────────
 } elseif ($method === 'POST') {
     requireStudent();
     $studentId = currentStudentId();
@@ -178,9 +178,9 @@ if ($method === 'GET') {
     http_response_code(201);
     echo json_encode(['message' => 'Feedback submitted successfully.']);
 
-// ─────────────────────────────────────────
+// ──────────────────────────────────────────────
 // PATCH — admin classifies + responds to feedback (?id=X) (FR-11)
-// ─────────────────────────────────────────
+// ──────────────────────────────────────────────
 } elseif ($method === 'PATCH') {
     requireAdmin();
     $adminId = currentAdminId();
@@ -195,7 +195,10 @@ if ($method === 'GET') {
 
     $data           = json_decode(file_get_contents('php://input'), true);
     $classification = $data['classification'] ?? null;
-    $adminResponse  = trim($data['adminResponse'] ?? '') ?: null;
+
+    // Only treat this as a "response update" if adminResponse key was actually sent
+    $responseProvided = is_array($data) && array_key_exists('adminResponse', $data);
+    $adminResponse     = $responseProvided ? (trim($data['adminResponse'] ?? '') ?: null) : null;
 
     if ($classification !== null && !in_array($classification, ['positive', 'negative'])) {
         http_response_code(400);
@@ -213,20 +216,32 @@ if ($method === 'GET') {
         exit;
     }
 
-    $stmt = $db->prepare(
-        'UPDATE feedback SET
-            classification = ?,
-            adminResponse  = ?,
-            respondedBy    = ?,
-            respondedAt    = NOW()
-         WHERE feedbackId  = ?'
-    );
-    $stmt->execute([
-        $classification,
-        $adminResponse,
-        $adminId,
-        $feedbackId,
-    ]);
+    if ($responseProvided) {
+        $stmt = $db->prepare(
+            'UPDATE feedback SET
+                classification = ?,
+                adminResponse  = ?,
+                respondedBy    = ?,
+                respondedAt    = NOW()
+             WHERE feedbackId  = ?'
+        );
+        $stmt->execute([
+            $classification,
+            $adminResponse,
+            $adminId,
+            $feedbackId,
+        ]);
+    } else {
+        $stmt = $db->prepare(
+            'UPDATE feedback SET
+                classification = ?
+             WHERE feedbackId  = ?'
+        );
+        $stmt->execute([
+            $classification,
+            $feedbackId,
+        ]);
+    }
 
     echo json_encode(['message' => 'Feedback classified and response saved.']);
 

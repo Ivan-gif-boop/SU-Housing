@@ -223,3 +223,51 @@ function updatePendingCount() {
 
 // Run filter on page load
 document.addEventListener('DOMContentLoaded', () => filterFeedbackCards());
+// ── Admin response to feedback ──
+function showResponseForm(feedbackId) {
+  document.getElementById('fbc-response-view-' + feedbackId)?.style.setProperty('display', 'none');
+  document.getElementById('fbc-response-form-' + feedbackId)?.style.setProperty('display', 'block');
+}
+
+async function submitFeedbackResponse(feedbackId) {
+  const card      = document.getElementById('fbc-' + feedbackId);
+  const textarea  = document.getElementById('fbc-response-input-' + feedbackId);
+  const btn       = card?.querySelector(`#fbc-response-form-${feedbackId} button`);
+  const response  = textarea?.value.trim();
+
+  if (!response) {
+    showToast('Please write a response before sending.', 'error');
+    return;
+  }
+
+  // Preserve existing classification so the PATCH doesn't wipe it out
+  const currentClassification = card?.dataset.classification || null;
+
+  if (btn) { btn.disabled = true; btn.style.opacity = '0.6'; }
+
+  try {
+    const res = await fetch(
+      `/SU-Housing/api/feedback.php?id=${feedbackId}`,
+      {
+        method:  'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          classification: currentClassification || null,
+          adminResponse:  response,
+        }),
+      }
+    );
+    const data = await res.json();
+
+    if (res.ok) {
+      showToast('Response sent to student.', 'success');
+      setTimeout(() => location.reload(), 900);
+    } else {
+      if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
+      showToast(data.error || 'Failed to send response.', 'error');
+    }
+  } catch (err) {
+    if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
+    showToast('Network error. Please try again.', 'error');
+  }
+}
