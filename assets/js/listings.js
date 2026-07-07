@@ -49,9 +49,12 @@ function initListingMap() {
   newDiv.style.cssText = 'height:100%; width:100%;';
   wrapper.appendChild(newDiv);
 
-  listingMap = L.map('listingMapPicker', {
-    scrollWheelZoom: false,
-  }).setView(SU_CENTER, 15);
+listingMap = L.map('listingMapPicker', {
+scrollWheelZoom: false,
+}).setView(SU_CENTER, 15, { animate: false }); // ← add this option here too
+
+L.DomEvent.disableClickPropagation(newDiv);
+L.DomEvent.disableScrollPropagation(newDiv);
 
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
@@ -190,7 +193,7 @@ function editListing(listing) {
   // After modal opens and fadeUp animation completes (300ms),
   // recreate the map positioned on the existing coordinates
   setTimeout(() => {
-    initListingMap();
+
     if (listing.latitude && listing.longitude) {
       const lat = parseFloat(listing.latitude);
       const lng = parseFloat(listing.longitude);
@@ -211,7 +214,7 @@ function editListing(listing) {
         }),
       }).addTo(listingMap);
     }
-  }, 350);
+  }, 400);
 }
 
 // ── Reset modal to add mode ──

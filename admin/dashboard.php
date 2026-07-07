@@ -32,7 +32,7 @@ $totalFeedback = (int) $db->query(
 
 // ── All active listings ──
 $listings = $db->query(
-    'SELECT hostelId, hostelName, physicalAddress, neighbourhood,
+    'SELECT hostelId, hostelName, physicalAddress,
             priceMin, priceMax, roomType, roomsAvailable, isActive, createdAt
      FROM hostel_listings
      WHERE isActive = 1
