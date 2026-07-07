@@ -148,10 +148,6 @@ function scoreListingAgainstProfile(array $listing, array $profile): int {
         $maxScore++;
         if ($listing['curfewPolicy'] === $profile['curfewPreference']) $score++;
     }
-    if (!empty($profile['environmentType'])) {
-        $maxScore++;
-        if ($listing['environmentType'] === $profile['environmentType']) $score++;
-    }
     return $maxScore > 0 ? (int) round(($score / $maxScore) * 100) : 0;
 }
 
@@ -253,7 +249,9 @@ include __DIR__ . '/../includes/sidebar.php';
                        alt="<?php echo htmlspecialchars($h['hostelName']); ?>"
                        style="width:100%; height:100%; object-fit:cover;"/>
                 <?php else: ?>
-                  <span class="hostel-card-emoji"></span>
+                  <div class="hostel-card-img-placeholder">
+                    No image available
+                  </div>
                 <?php endif; ?>
               </div>
               <span class="match-badge"><?php echo $h['matchScore']; ?>% match</span>
@@ -309,7 +307,6 @@ include __DIR__ . '/../includes/sidebar.php';
 
     <?php if (empty($featured)): ?>
       <div class="empty-state">
-        <div class="empty-icon"></div>
         <h3>No listings yet</h3>
         <p>The Dean of Students office hasn't published any hostels yet. Check back soon.</p>
       </div>
@@ -325,7 +322,6 @@ include __DIR__ . '/../includes/sidebar.php';
                        alt="<?php echo htmlspecialchars($h['hostelName']); ?>"
                        style="width:100%; height:100%; object-fit:cover;"/>
                 <?php else: ?>
-                  <span class="hostel-card-emoji"></span>
                 <?php endif; ?>
               </div>
               <span class="hostel-price-badge">

@@ -94,7 +94,7 @@ if (mapEl && !isNaN(hostelLat) && !isNaN(hostelLng)) {
       <div style="height:320px; display:flex; align-items:center;
                   justify-content:center; background:var(--gray-100);
                   flex-direction:column; gap:8px;">
-        <span style="font-size:36px;">🗺️</span>
+        <span style="font-size:36px;"></span>
         <p style="font-size:14px; color:var(--gray-600);">
           Map coordinates not yet available for this listing.
         </p>

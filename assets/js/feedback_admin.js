@@ -145,7 +145,7 @@ async function removeClassification(feedbackId) {
       const badge = card.querySelector('.badge');
       if (badge) {
         badge.className   = 'badge badge-amber';
-        badge.textContent = '⏳ Pending';
+        badge.textContent = ' Pending';
       }
 
       // Replace remove button with classify buttons
