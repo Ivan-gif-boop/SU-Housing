@@ -148,7 +148,7 @@ include __DIR__ . '/../includes/sidebar.php';
                       class="btn btn-outline btn-sm edit-listing-btn"
                       data-listing="<?php echo htmlspecialchars(json_encode($l), ENT_QUOTES, 'UTF-8'); ?>"
                     >
-                      ✏️ Edit
+                    Edit
                     </button>
                     <?php if ($l['isActive']): ?>
                       <button
@@ -180,7 +180,7 @@ include __DIR__ . '/../includes/sidebar.php';
 
         <?php if (empty($listings)): ?>
           <div class="empty-state" style="padding:48px;">
-            <div class="empty-icon">🏠</div>
+            <div class="empty-icon"></div>
             <h3>No listings yet</h3>
             <p>Click "Add New Listing" to publish your first hostel.</p>
           </div>
@@ -240,13 +240,14 @@ include __DIR__ . '/../includes/sidebar.php';
           <div class="form-group">
             <label>Location</label>
 
-            <!-- Map container -->
-            <div id="listingMapPicker"
+            <!-- Map wrapper — persistent outer div, inner div is replaced on each open -->
+            <div id="listingMapWrapper"
                  style="height:240px; border-radius:8px; border:1px solid var(--gray-200);
-                        margin-bottom:8px; z-index:0; background:var(--gray-100);">
+                        margin-bottom:8px; overflow:hidden; position:relative;">
+              <div id="listingMapPicker" style="height:100%; width:100%;"></div>
             </div>
             <div class="form-hint" style="margin-bottom:8px;">
-              📍 Click on the map to place the hostel pin.
+               Click on the map to place the hostel pin.
               The address will fill in automatically.
               You can also type the address manually below.
             </div>

@@ -29,86 +29,143 @@ const SU_CENTER = [-1.3100, 36.8126];
 let listingMap    = null;
 let listingMarker = null;
 
-function initListingMap() {
-  // Only init once — Leaflet throws if you re-init the same container
+function makeMarkerIcon() {
+  return L.divIcon({
+    className: '',
+    html: `<div style="
+      background:var(--amber,#e8a020);
+      width:32px; height:32px;
+      border-radius:50% 50% 50% 0;
+      transform:rotate(-45deg);
+      border:3px solid white;
+      box-shadow:0 2px 8px rgba(0,0,0,.3);
+    "></div>`,
+    iconSize: [32, 32],
+    iconAnchor: [16, 32],
+  });
+}
+
+// Waits until the container's height stops changing for 5 straight
+// animation frames — i.e. the modal's open animation has actually
+// finished, not just "probably finished after Xms"
+function waitForStableSize(el, cb) {
+  let lastHeight = -1;
+  let stableFrames = 0;
+
+  function tick() {
+    const h = el.offsetHeight;
+    if (h > 0 && h === lastHeight) {
+      stableFrames++;
+      if (stableFrames >= 5) { cb(); return; }
+    } else {
+      stableFrames = 0;
+    }
+    lastHeight = h;
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+}
+
+// Fully tears down and rebuilds the map+container, then calls
+// onReady(map) once the map is created and sized correctly.
+function rebuildListingMap(onReady) {
   if (listingMap) {
-    listingMap.invalidateSize();
-    return;
+    listingMap.remove();
+    listingMap    = null;
+    listingMarker = null;
   }
 
-  listingMap = L.map('listingMapPicker').setView(SU_CENTER, 15);
+  const wrapper = document.getElementById('listingMapWrapper');
+  if (!wrapper) return;
 
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-    maxZoom: 19,
-  }).addTo(listingMap);
+  wrapper.innerHTML = '';
+  const newDiv = document.createElement('div');
+  newDiv.id    = 'listingMapPicker';
+  newDiv.style.cssText = 'height:100%; width:100%;';
+  wrapper.appendChild(newDiv);
 
-  // Click handler — drop pin and reverse geocode
-  listingMap.on('click', async function(e) {
-    const { lat, lng } = e.latlng;
+  waitForStableSize(wrapper, () => {
+    listingMap = L.map('listingMapPicker', {
+      scrollWheelZoom: false,
+    }).setView(SU_CENTER, 15, { animate: false });
 
-    // Move or create marker
-    if (listingMarker) {
-      listingMarker.setLatLng([lat, lng]);
-    } else {
-      listingMarker = L.marker([lat, lng], {
-        icon: L.divIcon({
-          className: '',
-          html: `<div style="
-            background:var(--amber,#e8a020);
-            width:32px; height:32px;
-            border-radius:50% 50% 50% 0;
-            transform:rotate(-45deg);
-            border:3px solid white;
-            box-shadow:0 2px 8px rgba(0,0,0,.3);
-          "></div>`,
-          iconSize: [32, 32],
-          iconAnchor: [16, 32],
-        }),
-      }).addTo(listingMap);
-    }
+    L.DomEvent.disableClickPropagation(newDiv);
+    L.DomEvent.disableScrollPropagation(newDiv);
 
-    // Store coordinates in hidden fields
-    document.getElementById('lLat').value = lat.toFixed(8);
-    document.getElementById('lLng').value = lng.toFixed(8);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+      maxZoom: 19,
+    }).addTo(listingMap);
 
-    // Reverse geocode to get address string
-    try {
-      const res  = await fetch(
-        `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`,
-        { headers: { 'Accept-Language': 'en' } }
-      );
-      const data = await res.json();
+    // Click handler — drop pin and reverse geocode
+    listingMap.on('click', async function(e) {
+      const { lat, lng } = e.latlng;
 
-      if (data && data.display_name) {
-        // Use a shortened version: road + suburb + city
-        const a = data.address || {};
-        const parts = [
-          a.road || a.pedestrian || a.footway || '',
-          a.suburb || a.neighbourhood || a.quarter || '',
-          a.city || a.town || a.village || 'Nairobi',
-        ].filter(Boolean);
-
-        document.getElementById('lAddress').value =
-          parts.length > 0 ? parts.join(', ') : data.display_name;
+      if (listingMarker) {
+        listingMarker.setLatLng([lat, lng]);
+      } else {
+        listingMarker = L.marker([lat, lng], { icon: makeMarkerIcon() }).addTo(listingMap);
       }
-    } catch (err) {
-      // Reverse geocode failed — admin can type address manually
-      console.warn('Reverse geocode failed:', err);
+
+      document.getElementById('lLat').value = lat.toFixed(8);
+      document.getElementById('lLng').value = lng.toFixed(8);
+
+      try {
+        const res  = await fetch(
+          `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`,
+          { headers: { 'Accept-Language': 'en' } }
+        );
+        const data = await res.json();
+        if (data && data.display_name) {
+          const a = data.address || {};
+          const parts = [
+            a.road || a.pedestrian || a.footway || '',
+            a.suburb || a.neighbourhood || a.quarter || '',
+            a.city || a.town || a.village || 'Nairobi',
+          ].filter(Boolean);
+          document.getElementById('lAddress').value =
+            parts.length > 0 ? parts.join(', ') : data.display_name;
+        }
+      } catch (err) {
+        console.warn('Reverse geocode failed:', err);
+      }
+    });
+
+    // Final safety net redraw
+    requestAnimationFrame(() => listingMap.invalidateSize({ animate: false }));
+
+    if (onReady) onReady(listingMap);
+  });
+}
+
+// Catch-all: if window is resized while modal is open, fix map
+window.addEventListener('resize', () => {
+  if (listingMap && document.getElementById('listingModal')?.classList.contains('open')) {
+    listingMap.invalidateSize({ animate: false });
+  }
+});
+
+// Single source of truth for opening the listing modal + building the map.
+// mode: 'add' uses SU_CENTER; 'edit' takes coords and jumps there.
+function openListingModalWithMap(mode, coords) {
+  document.getElementById('listingModal')?.classList.add('open');
+  rebuildListingMap((map) => {
+    if (mode === 'edit' && coords) {
+      map.setView([coords.lat, coords.lng], 16, { animate: false });
+      listingMarker = L.marker([coords.lat, coords.lng], { icon: makeMarkerIcon() }).addTo(map);
     }
   });
 }
 
-// Init map when modal opens — use a small delay so the
-// modal is fully visible before Leaflet measures the container
-const listingModalEl = document.getElementById('listingModal');
-if (listingModalEl) {
-  const observer = new MutationObserver(() => {
-    if (listingModalEl.classList.contains('open')) {
-      setTimeout(initListingMap, 100);
-    }
-  });
-  observer.observe(listingModalEl, { attributes: true, attributeFilter: ['class'] });
+// ── Open modal (generic) ──
+// listingModal gets special handling so the map builds correctly;
+// all other modals (confirmModal, etc.) behave as before.
+function openModal(id) {
+  if (id === 'listingModal') {
+    openListingModalWithMap('add');
+  } else {
+    document.getElementById(id)?.classList.add('open');
+  }
 }
 
 // ── Edit listing buttons — use event delegation ──
@@ -123,11 +180,6 @@ document.addEventListener('click', function(e) {
     showToast('Failed to open listing editor.', 'error');
   }
 });
-
-// ── Open add modal ──
-function openModal(id) {
-  document.getElementById(id)?.classList.add('open');
-}
 
 // ── Open edit modal — pre-fill form ──
 function editListing(listing) {
@@ -170,38 +222,14 @@ function editListing(listing) {
     cb.checked = amenities.includes(cb.value);
   });
 
-  openModal('listingModal');
-
-  // After modal opens, position the map pin on the existing coordinates
-  setTimeout(() => {
-    initListingMap();
-    if (listing.latitude && listing.longitude) {
-      const lat = parseFloat(listing.latitude);
-      const lng = parseFloat(listing.longitude);
-
-      listingMap.setView([lat, lng], 16);
-
-      if (listingMarker) {
-        listingMarker.setLatLng([lat, lng]);
-      } else {
-        listingMarker = L.marker([lat, lng], {
-          icon: L.divIcon({
-            className: '',
-            html: `<div style="
-              background:var(--amber,#e8a020);
-              width:32px; height:32px;
-              border-radius:50% 50% 50% 0;
-              transform:rotate(-45deg);
-              border:3px solid white;
-              box-shadow:0 2px 8px rgba(0,0,0,.3);
-            "></div>`,
-            iconSize: [32, 32],
-            iconAnchor: [16, 32],
-          }),
-        }).addTo(listingMap);
-      }
-    }
-  }, 150);
+  if (listing.latitude && listing.longitude) {
+    openListingModalWithMap('edit', {
+      lat: parseFloat(listing.latitude),
+      lng: parseFloat(listing.longitude),
+    });
+  } else {
+    openListingModalWithMap('add');
+  }
 }
 
 // ── Reset modal to add mode ──
@@ -216,16 +244,7 @@ document.querySelector('[onclick="openModal(\'listingModal\')"]')
   const preview = document.getElementById('currentImagePreview');
   if (preview) preview.style.display = 'none';
   clearAllErrors();
-
-  // Reset map to Strathmore center and remove pin
-  setTimeout(() => {
-    initListingMap();
-    listingMap.setView(SU_CENTER, 15);
-    if (listingMarker) {
-      listingMap.removeLayer(listingMarker);
-      listingMarker = null;
-    }
-  }, 150);
+  // Map init is handled by openModal() -> openListingModalWithMap('add')
 });
 
 // ── Form validation helpers ──

@@ -230,6 +230,7 @@ include __DIR__ . '/../includes/sidebar.php';
       </div>
 
       <div class="stat-card animate-fade-up delay-4">
+        <div class="stat-icon green"></div>
         <div>
           <div class="stat-num"><?php echo $totalFeedback; ?></div>
           <div class="stat-label">Total Feedback</div>
@@ -366,7 +367,6 @@ include __DIR__ . '/../includes/sidebar.php';
       <div class="table-wrap">
         <?php if (empty($listings)): ?>
           <div class="empty-state" style="padding:40px;">
-            <div class="empty-icon"></div>
             <h3>No active listings</h3>
             <p>
               <a href="/SU-Housing/admin/listings.php"
@@ -380,7 +380,7 @@ include __DIR__ . '/../includes/sidebar.php';
             <thead>
               <tr>
                 <th>Hostel Name</th>
-                <th>Location</th>
+                <th>Neighbourhood</th>
                 <th>Price Range</th>
                 <th>Room Type</th>
                 <th>Rooms</th>
@@ -442,7 +442,6 @@ include __DIR__ . '/../includes/sidebar.php';
     <?php if ($prefAnalytics['totalWithProfile'] === 0): ?>
       <div class="card">
         <div class="empty-state" style="padding:40px;">
-          <div class="empty-icon"></div>
           <h3>No preference profiles yet</h3>
           <p>Analytics will appear here once students set up their preference profiles.</p>
         </div>
@@ -455,6 +454,7 @@ include __DIR__ . '/../includes/sidebar.php';
         <!-- Budget -->
         <?php if ($prefAnalytics['budget'] && $prefAnalytics['budget']['avgMin']): ?>
           <div class="stat-card">
+            <div class="stat-icon amber"></div>
             <div>
               <div class="stat-num" style="font-size:18px;">
                 KES <?php echo number_format($prefAnalytics['budget']['avgMin']); ?>
@@ -467,6 +467,7 @@ include __DIR__ . '/../includes/sidebar.php';
 
         <!-- Profiles count -->
         <div class="stat-card">
+          <div class="stat-icon blue">👤</div>
           <div>
             <div class="stat-num"><?php echo $prefAnalytics['totalWithProfile']; ?></div>
             <div class="stat-label">Students with Profiles</div>

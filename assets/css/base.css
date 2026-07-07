@@ -42,6 +42,12 @@ input, textarea, select, button {
 img {
   max-width: 100%;
   display: block;
+  transition: all 0.2s; /* or whatever your actual value is */
+}
+
+.leaflet-container img {
+  max-width: none;
+  transition: none; /* tiles must snap into position instantly, not animate */
 }
 
 /* ── Headings ── */
