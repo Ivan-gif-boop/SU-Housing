@@ -27,7 +27,6 @@ $p = [
     'budgetMin'           => $profile['budgetMin']          ?? '',
     'budgetMax'           => $profile['budgetMax']          ?? '',
     'preferredLocation'   => $profile['preferredLocation']  ?? '',
-    'environmentType'     => $profile['environmentType']    ?? '',
     'curfewPreference'    => $profile['curfewPreference']   ?? '',
 ];
 
@@ -122,7 +121,7 @@ include __DIR__ . '/../includes/sidebar.php';
             and match percentages will no longer appear.
           </p>
           <div class="alert alert-warning" style="margin-top:16px; font-size:13px;">
-            You can set up a new profile at any time by filling in
+             You can set up a new profile at any time by filling in
             the form below again.
           </div>
         </div>
@@ -195,25 +194,28 @@ include __DIR__ . '/../includes/sidebar.php';
           </div>
 
           <div class="pref-field">
-            <div class="pref-label">Noise tolerance</div>
+            <div class="pref-label">Environment Preference</div>
+            <div class="form-hint" style="margin-bottom:8px; margin-top:-4px;">
+              What kind of hostel atmosphere suits you best?
+            </div>
             <div class="radio-group">
               <label class="radio-option">
                 <input type="radio" name="noiseTolerance" value="quiet"
                   <?php echo $p['noiseTolerance'] === 'quiet' ? 'checked' : ''; ?>/>
                 <span class="radio-box"><span class="radio-dot"></span></span>
-                Quiet
+                Quiet — calm, study-focused atmosphere
               </label>
               <label class="radio-option">
                 <input type="radio" name="noiseTolerance" value="moderate"
                   <?php echo $p['noiseTolerance'] === 'moderate' ? 'checked' : ''; ?>/>
                 <span class="radio-box"><span class="radio-dot"></span></span>
-                Moderate
+                Moderate — balanced, social but not loud
               </label>
               <label class="radio-option">
                 <input type="radio" name="noiseTolerance" value="lively"
                   <?php echo $p['noiseTolerance'] === 'lively' ? 'checked' : ''; ?>/>
                 <span class="radio-box"><span class="radio-dot"></span></span>
-                Lively
+                Lively — energetic, social environment
               </label>
             </div>
           </div>
@@ -259,24 +261,6 @@ include __DIR__ . '/../includes/sidebar.php';
               </option>
               <option value="ensuite" <?php echo $p['roomTypePreference'] === 'ensuite' ? 'selected' : ''; ?>>
                 Ensuite
-              </option>
-            </select>
-          </div>
-
-          <div class="pref-field" style="margin-top:16px;">
-            <div class="pref-label">Environment type</div>
-            <select name="environmentType" class="form-control pref-select">
-              <option value="" <?php echo $p['environmentType'] === '' ? 'selected' : ''; ?>>
-                No preference
-              </option>
-              <option value="quiet" <?php echo $p['environmentType'] === 'quiet' ? 'selected' : ''; ?>>
-                Quiet
-              </option>
-              <option value="moderate" <?php echo $p['environmentType'] === 'moderate' ? 'selected' : ''; ?>>
-                Moderate
-              </option>
-              <option value="lively" <?php echo $p['environmentType'] === 'lively' ? 'selected' : ''; ?>>
-                Lively
               </option>
             </select>
           </div>
@@ -401,7 +385,6 @@ document.getElementById('preferenceForm')
       noiseTolerance:     form.get('noiseTolerance')     || null,
       genderPreference:   form.get('genderPreference')   || null,
       roomTypePreference: form.get('roomTypePreference') || null,
-      environmentType:    form.get('environmentType')    || null,
       curfewPreference:   form.get('curfewPreference')   || null,
       budgetMin:          form.get('budgetMin') ? parseFloat(form.get('budgetMin')) : null,
       budgetMax:          form.get('budgetMax') ? parseFloat(form.get('budgetMax')) : null,

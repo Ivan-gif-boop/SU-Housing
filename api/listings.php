@@ -1,5 +1,4 @@
 <?php
-
 // api/listings.php
 // GET    — anyone logged in: browse/filter listings (FR-05, FR-06, FR-09)
 // POST   — admin only: create a new listing (FR-02)
@@ -157,7 +156,7 @@ if ($method === 'GET') {
 
     // Data comes from $_POST (multipart/form-data), not php://input
     $data = $_POST;
-    
+
     // Amenities arrive as JSON string from FormData
     if (!empty($data['amenities']) && is_string($data['amenities'])) {
         $data['amenities'] = json_decode($data['amenities'], true) ?? [];
@@ -531,16 +530,6 @@ function scoreListingAgainstProfile(array $listing, array $profile): int {
     if (!empty($profile['curfewPreference'])) {
         $maxScore++;
         if ($listing['curfewPolicy'] === $profile['curfewPreference']) {
-            $score++;
-        }
-    }
-
-    // ── Environment type (explicit) ──
-    // Direct match between student's stated environment preference
-    // and the hostel's environment type
-    if (!empty($profile['environmentType'])) {
-        $maxScore++;
-        if ($listing['environmentType'] === $profile['environmentType']) {
             $score++;
         }
     }

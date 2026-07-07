@@ -153,10 +153,6 @@ function scoreListingAgainstProfile(array $listing, array $profile): int {
         $maxScore++;
         if ($listing['curfewPolicy'] === $profile['curfewPreference']) $score++;
     }
-    if (!empty($profile['environmentType'])) {
-        $maxScore++;
-        if ($listing['environmentType'] === $profile['environmentType']) $score++;
-    }
     return $maxScore > 0 ? (int) round(($score / $maxScore) * 100) : 0;
 }
 
@@ -231,6 +227,7 @@ include __DIR__ . '/../includes/sidebar.php';
         <div class="filter-group">
           <label class="filter-label">Search</label>
           <div class="input-wrap">
+            <span class="input-icon"></span>
             <input
               type="text"
               id="filterSearch"
@@ -244,7 +241,7 @@ include __DIR__ . '/../includes/sidebar.php';
         <!-- Neighbourhood / Location -->
         <div class="filter-group">
           <label class="filter-label">Location</label>
-          <select id="filterLocation"
+          <select id="filterNeighbourhood"
                   class="form-control"
                   onchange="applyFilters()">
             <option value="">All Locations</option>
@@ -364,7 +361,7 @@ include __DIR__ . '/../includes/sidebar.php';
           <?php foreach ($listings as $h): ?>
             <div class="hostel-card animate-fade-up"
                  data-name="<?php echo strtolower(htmlspecialchars($h['hostelName'])); ?>"
-                 data-address="<?php echo htmlspecialchars($h['physicalAddress']); ?>"
+                 data-neighbourhood="<?php echo htmlspecialchars($h['neighbourhood']); ?>"
                  data-price-min="<?php echo $h['priceMin']; ?>"
                  data-price-max="<?php echo $h['priceMax']; ?>"
                  data-room-type="<?php echo $h['roomType']; ?>"
@@ -379,7 +376,9 @@ include __DIR__ . '/../includes/sidebar.php';
                          alt="<?php echo htmlspecialchars($h['hostelName']); ?>"
                          style="width:100%; height:100%; object-fit:cover;"/>
                   <?php else: ?>
-                    <span class="hostel-card-emoji"></span>
+                    <div class="hostel-card-img-placeholder">
+                      No image
+                    </div>
                   <?php endif; ?>
                 </div>
                 <?php if ($hasProfile): ?>
