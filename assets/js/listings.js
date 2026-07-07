@@ -167,6 +167,19 @@ function openModal(id) {
     document.getElementById(id)?.classList.add('open');
   }
 }
+function closeModal(id) {
+    const modal = document.getElementById(id);
+    if (!modal) return;
+
+    modal.classList.remove('open');
+
+    // Clean up the map when closing the listing modal
+    if (id === 'listingModal' && listingMap) {
+        listingMap.remove();
+        listingMap = null;
+        listingMarker = null;
+    }
+}
 
 // ── Edit listing buttons — use event delegation ──
 document.addEventListener('click', function(e) {
