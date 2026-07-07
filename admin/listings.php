@@ -240,11 +240,11 @@ include __DIR__ . '/../includes/sidebar.php';
           <div class="form-group">
             <label>Location</label>
 
-            <!-- Map container -->
-            <div id="listingMapPicker"
+            <!-- Map wrapper — persistent outer div, inner div is replaced on each open -->
+            <div id="listingMapWrapper"
                  style="height:240px; border-radius:8px; border:1px solid var(--gray-200);
-                        margin-bottom:8px; z-index:1; background:var(--gray-100);
-                        overflow:hidden; position:relative;">
+                        margin-bottom:8px; overflow:hidden; position:relative;">
+              <div id="listingMapPicker" style="height:100%; width:100%;"></div>
             </div>
             <div class="form-hint" style="margin-bottom:8px;">
               📍 Click on the map to place the hostel pin.

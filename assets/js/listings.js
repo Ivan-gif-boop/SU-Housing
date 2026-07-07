@@ -30,15 +30,26 @@ let listingMap    = null;
 let listingMarker = null;
 
 function initListingMap() {
-  // If already initialised, just force a size recalculation
-  // in case the modal was resized or re-opened
+  // Destroy existing map instance completely
   if (listingMap) {
-    setTimeout(() => listingMap.invalidateSize(), 200);
-    return;
+    listingMap.remove();
+    listingMap    = null;
+    listingMarker = null;
   }
 
+  // Replace the map container div with a fresh one
+  // This is the only reliable fix for Leaflet grey/offset tiles
+  // when initialised inside a previously-hidden modal
+  const wrapper = document.getElementById('listingMapWrapper');
+  if (!wrapper) return;
+
+  wrapper.innerHTML = '';
+  const newDiv = document.createElement('div');
+  newDiv.id    = 'listingMapPicker';
+  newDiv.style.cssText = 'height:100%; width:100%;';
+  wrapper.appendChild(newDiv);
+
   listingMap = L.map('listingMapPicker', {
-    // Prevent map from capturing scroll inside the modal
     scrollWheelZoom: false,
   }).setView(SU_CENTER, 15);
 
@@ -47,17 +58,10 @@ function initListingMap() {
     maxZoom: 19,
   }).addTo(listingMap);
 
-  // Force size recalc at multiple points to ensure
-  // tiles fill the full container after modal transition
-  [200, 400, 700].forEach(delay => {
-    setTimeout(() => listingMap.invalidateSize({ animate: false }), delay);
-  });
-
   // Click handler — drop pin and reverse geocode
   listingMap.on('click', async function(e) {
     const { lat, lng } = e.latlng;
 
-    // Move or create marker
     if (listingMarker) {
       listingMarker.setLatLng([lat, lng]);
     } else {
@@ -78,18 +82,15 @@ function initListingMap() {
       }).addTo(listingMap);
     }
 
-    // Store coordinates in hidden fields
     document.getElementById('lLat').value = lat.toFixed(8);
     document.getElementById('lLng').value = lng.toFixed(8);
 
-    // Reverse geocode to get address string
     try {
       const res  = await fetch(
         `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`,
         { headers: { 'Accept-Language': 'en' } }
       );
       const data = await res.json();
-
       if (data && data.display_name) {
         const a = data.address || {};
         const parts = [
@@ -97,7 +98,6 @@ function initListingMap() {
           a.suburb || a.neighbourhood || a.quarter || '',
           a.city || a.town || a.village || 'Nairobi',
         ].filter(Boolean);
-
         document.getElementById('lAddress').value =
           parts.length > 0 ? parts.join(', ') : data.display_name;
       }
@@ -107,34 +107,24 @@ function initListingMap() {
   });
 }
 
-// Init map when modal opens — use a small delay so the
-// modal is fully visible before Leaflet measures the container
-const listingModalEl = document.getElementById('listingModal');
-if (listingModalEl) {
-  const observer = new MutationObserver(() => {
-    if (listingModalEl.classList.contains('open')) {
-      // Call invalidateSize at multiple intervals to catch
-      // different phases of the modal transition completing
-      [100, 250, 400, 600].forEach(delay => {
-        setTimeout(() => {
-          if (listingMap) {
-            listingMap.invalidateSize({ animate: false });
-          } else {
-            initListingMap();
-          }
-        }, delay);
-      });
-    }
-  });
-  observer.observe(listingModalEl, { attributes: true, attributeFilter: ['class'] });
-}
-
 // Catch-all: if window is resized while modal is open, fix map
 window.addEventListener('resize', () => {
   if (listingMap && document.getElementById('listingModal')?.classList.contains('open')) {
     listingMap.invalidateSize({ animate: false });
   }
 });
+
+// Override openModal for the listing modal specifically
+// so we can init the map AFTER the modal is visible
+const _originalOpenModal = window.openModal;
+window.openModal = function(id) {
+  _originalOpenModal(id);
+  if (id === 'listingModal') {
+    // The modal is now display:flex — wait for fadeUp animation (300ms)
+    // to complete before initialising the map
+    setTimeout(initListingMap, 350);
+  }
+};
 
 // ── Edit listing buttons — use event delegation ──
 document.addEventListener('click', function(e) {
@@ -197,36 +187,31 @@ function editListing(listing) {
 
   openModal('listingModal');
 
-  // After modal opens, position the map pin on the existing coordinates
+  // After modal opens and fadeUp animation completes (300ms),
+  // recreate the map positioned on the existing coordinates
   setTimeout(() => {
     initListingMap();
     if (listing.latitude && listing.longitude) {
       const lat = parseFloat(listing.latitude);
       const lng = parseFloat(listing.longitude);
-
       listingMap.setView([lat, lng], 16);
-
-      if (listingMarker) {
-        listingMarker.setLatLng([lat, lng]);
-      } else {
-        listingMarker = L.marker([lat, lng], {
-          icon: L.divIcon({
-            className: '',
-            html: `<div style="
-              background:var(--amber,#e8a020);
-              width:32px; height:32px;
-              border-radius:50% 50% 50% 0;
-              transform:rotate(-45deg);
-              border:3px solid white;
-              box-shadow:0 2px 8px rgba(0,0,0,.3);
-            "></div>`,
-            iconSize: [32, 32],
-            iconAnchor: [16, 32],
-          }),
-        }).addTo(listingMap);
-      }
+      listingMarker = L.marker([lat, lng], {
+        icon: L.divIcon({
+          className: '',
+          html: `<div style="
+            background:var(--amber,#e8a020);
+            width:32px; height:32px;
+            border-radius:50% 50% 50% 0;
+            transform:rotate(-45deg);
+            border:3px solid white;
+            box-shadow:0 2px 8px rgba(0,0,0,.3);
+          "></div>`,
+          iconSize: [32, 32],
+          iconAnchor: [16, 32],
+        }),
+      }).addTo(listingMap);
     }
-  }, 150);
+  }, 350);
 }
 
 // ── Reset modal to add mode ──
@@ -241,16 +226,7 @@ document.querySelector('[onclick="openModal(\'listingModal\')"]')
   const preview = document.getElementById('currentImagePreview');
   if (preview) preview.style.display = 'none';
   clearAllErrors();
-
-  // Reset map to Strathmore center and remove pin
-  setTimeout(() => {
-    initListingMap();
-    listingMap.setView(SU_CENTER, 15);
-    if (listingMarker) {
-      listingMap.removeLayer(listingMarker);
-      listingMarker = null;
-    }
-  }, 150);
+  // Map init is handled by the openModal override above
 });
 
 // ── Form validation helpers ──
