@@ -1,6 +1,8 @@
 // assets/js/feedback_admin.js
 // FR-11: classify feedback as positive or negative
-//        → POST /SU-Housing/api/feedback.php?id={id}&action=classify
+//        → PATCH /SU-Housing/api/feedback.php?id={id}
+//        respond to feedback with an admin message
+//        → PATCH /SU-Housing/api/feedback.php?id={id}
 
 // ── Tab switching ──
 function switchFeedbackTab(btn, tabId) {
@@ -194,6 +196,73 @@ async function removeClassification(feedbackId) {
     if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
     showToast('Network error. Please try again.', 'error');
   }
+}
+
+// ── Respond to feedback → real API (FR-11) ──
+async function respondToFeedback(feedbackId) {
+  const textarea = document.getElementById('response-input-' + feedbackId);
+  if (!textarea) return;
+
+  const responseText = textarea.value.trim();
+  if (!responseText) {
+    showToast('Please write a response before sending.', 'error');
+    return;
+  }
+
+  const button = textarea.nextElementSibling;
+  if (button) { button.disabled = true; button.style.opacity = '0.6'; }
+  textarea.disabled = true;
+
+  try {
+    const res = await fetch(
+      `/SU-Housing/api/feedback.php?id=${feedbackId}`,
+      {
+        method:  'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ adminResponse: responseText }),
+      }
+    );
+    const data = await res.json();
+
+    if (res.ok) {
+      applyAdminResponse(feedbackId, responseText);
+      showToast('Response sent to student.', 'success');
+    } else {
+      if (button) { button.disabled = false; button.style.opacity = '1'; }
+      textarea.disabled = false;
+      showToast(data.error || 'Failed to send response. Try again.', 'error');
+    }
+  } catch (err) {
+    if (button) { button.disabled = false; button.style.opacity = '1'; }
+    textarea.disabled = false;
+    showToast('Network error. Please try again.', 'error');
+  }
+}
+
+function applyAdminResponse(feedbackId, responseText) {
+  const card = document.getElementById('fbc-' + feedbackId);
+  if (!card) return;
+
+  const responseBox = card.querySelector('.fbc-response');
+  if (responseBox) {
+    const today = new Date().toLocaleDateString('en-GB', {
+      day: 'numeric', month: 'short', year: 'numeric'
+    });
+    responseBox.innerHTML = `
+      <div style="font-size:12px; font-weight:600; color:var(--gray-500); margin-bottom:4px;">
+        Admin Response
+        <span style="font-weight:400;">· ${today}</span>
+      </div>
+      <p style="font-size:13px; color:var(--gray-700); margin:0;">
+        ${escapeHtml(responseText).replace(/\n/g, '<br>')}
+      </p>`;
+  }
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
 }
 
 function updatePendingCount() {

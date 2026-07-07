@@ -179,7 +179,11 @@ if ($method === 'GET') {
     echo json_encode(['message' => 'Feedback submitted successfully.']);
 
 // ─────────────────────────────────────────
-// PATCH — admin classifies + responds to feedback (?id=X) (FR-11)
+// PATCH — admin classifies and/or responds to feedback (?id=X) (FR-11)
+//
+// Only columns actually present in the JSON body are updated. This
+// prevents a classify-only call from wiping out an existing
+// adminResponse, and vice versa.
 // ─────────────────────────────────────────
 } elseif ($method === 'PATCH') {
     requireAdmin();
@@ -193,15 +197,7 @@ if ($method === 'GET') {
         exit;
     }
 
-    $data           = json_decode(file_get_contents('php://input'), true);
-    $classification = $data['classification'] ?? null;
-    $adminResponse  = trim($data['adminResponse'] ?? '') ?: null;
-
-    if ($classification !== null && !in_array($classification, ['positive', 'negative'])) {
-        http_response_code(400);
-        echo json_encode(['error' => 'Classification must be positive or negative.']);
-        exit;
-    }
+    $data = json_decode(file_get_contents('php://input'), true) ?? [];
 
     $checkStmt = $db->prepare(
         'SELECT feedbackId FROM feedback WHERE feedbackId = ?'
@@ -213,22 +209,45 @@ if ($method === 'GET') {
         exit;
     }
 
-    $stmt = $db->prepare(
-        'UPDATE feedback SET
-            classification = ?,
-            adminResponse  = ?,
-            respondedBy    = ?,
-            respondedAt    = NOW()
-         WHERE feedbackId  = ?'
-    );
-    $stmt->execute([
-        $classification,
-        $adminResponse,
-        $adminId,
-        $feedbackId,
-    ]);
+    $setClauses = [];
+    $params     = [];
 
-    echo json_encode(['message' => 'Feedback classified and response saved.']);
+    // Only touch classification if the client explicitly sent it
+    if (array_key_exists('classification', $data)) {
+        $classification = $data['classification'];
+        if ($classification !== null && !in_array($classification, ['positive', 'negative'])) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Classification must be positive or negative.']);
+            exit;
+        }
+        $setClauses[] = 'classification = ?';
+        $params[]     = $classification;
+    }
+
+    // Only touch adminResponse if the client explicitly sent it
+    if (array_key_exists('adminResponse', $data)) {
+        $adminResponse = trim($data['adminResponse'] ?? '') ?: null;
+        $setClauses[]  = 'adminResponse = ?';
+        $params[]      = $adminResponse;
+        $setClauses[]  = 'respondedBy = ?';
+        $params[]      = $adminId;
+        $setClauses[]  = 'respondedAt = NOW()';
+    }
+
+    if (empty($setClauses)) {
+        http_response_code(400);
+        echo json_encode(['error' => 'Nothing to update.']);
+        exit;
+    }
+
+    $params[] = $feedbackId;
+
+    $stmt = $db->prepare(
+        'UPDATE feedback SET ' . implode(', ', $setClauses) . ' WHERE feedbackId = ?'
+    );
+    $stmt->execute($params);
+
+    echo json_encode(['message' => 'Feedback updated successfully.']);
 
 } else {
     http_response_code(405);

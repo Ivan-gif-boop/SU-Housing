@@ -68,4 +68,35 @@
     </div>
   <?php endif; ?>
 
+  <!-- Admin response -->
+  <div class="fbc-response" style="margin-top:12px; padding-top:12px; border-top:1px solid var(--gray-200);">
+    <?php if (!empty($fb['adminResponse'])): ?>
+      <div style="font-size:12px; font-weight:600; color:var(--gray-500); margin-bottom:4px;">
+        Admin Response
+        <?php if (!empty($fb['respondedAt'])): ?>
+          <span style="font-weight:400;">
+            · <?php echo date('j M Y', strtotime($fb['respondedAt'])); ?>
+          </span>
+        <?php endif; ?>
+      </div>
+      <p style="font-size:13px; color:var(--gray-700); margin:0;">
+        <?php echo nl2br(htmlspecialchars($fb['adminResponse'])); ?>
+      </p>
+    <?php else: ?>
+      <textarea
+        id="response-input-<?php echo $fb['feedbackId']; ?>"
+        class="form-control"
+        rows="2"
+        placeholder="Write a response to this student…"
+        style="width:100%; font-size:13px; margin-bottom:8px;"
+      ></textarea>
+      <button
+        class="btn btn-primary btn-sm"
+        onclick="respondToFeedback(<?php echo $fb['feedbackId']; ?>)"
+      >
+        Send Response
+      </button>
+    <?php endif; ?>
+  </div>
+
 </div>
