@@ -38,10 +38,11 @@ $pageTitle  = 'Manage Listings';
 $activePage = 'listings';
 $userRole   = 'admin';
 
+$usesMap = true; // tells header.php to load Leaflet CSS
+
 include __DIR__ . '/../includes/header.php';
 include __DIR__ . '/../includes/sidebar.php';
 ?>
-
   <!-- ── Page header ── -->
   <div class="page-header">
     <div class="page-title-group">
@@ -440,7 +441,7 @@ include __DIR__ . '/../includes/sidebar.php';
   </div>
 
 <?php
-$usesMap     = true; // tells header.php to load Leaflet CSS
+
 $extraScripts = [
     'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js',
     '/SU-Housing/assets/js/listings.js',
