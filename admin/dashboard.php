@@ -230,7 +230,6 @@ include __DIR__ . '/../includes/sidebar.php';
       </div>
 
       <div class="stat-card animate-fade-up delay-4">
-        <div class="stat-icon green"></div>
         <div>
           <div class="stat-num"><?php echo $totalFeedback; ?></div>
           <div class="stat-label">Total Feedback</div>
@@ -454,7 +453,6 @@ include __DIR__ . '/../includes/sidebar.php';
         <!-- Budget -->
         <?php if ($prefAnalytics['budget'] && $prefAnalytics['budget']['avgMin']): ?>
           <div class="stat-card">
-            <div class="stat-icon amber"></div>
             <div>
               <div class="stat-num" style="font-size:18px;">
                 KES <?php echo number_format($prefAnalytics['budget']['avgMin']); ?>
@@ -467,7 +465,6 @@ include __DIR__ . '/../includes/sidebar.php';
 
         <!-- Profiles count -->
         <div class="stat-card">
-          <div class="stat-icon blue">👤</div>
           <div>
             <div class="stat-num"><?php echo $prefAnalytics['totalWithProfile']; ?></div>
             <div class="stat-label">Students with Profiles</div>

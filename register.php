@@ -286,7 +286,7 @@ form.addEventListener('submit', async function(e) {
   if (!admNo) {
     showError('admission_no', 'Admission number is required.');
     valid = false;
-  } else if (!/^\d{5,8}$/.test(admNo)) {
+  } else if (!/^\d{6}$/.test(admNo)) {
     showError('admission_no', 'Must be a valid admission number (e.g. 6 digits).');
     valid = false;
   }
