@@ -7,8 +7,8 @@
      id="fbc-<?php echo $fb['feedbackId']; ?>"
      data-hostel="<?php echo htmlspecialchars(strtolower($fb['hostelName'])); ?>"
      data-student="<?php echo htmlspecialchars(strtolower($fb['fullName'])); ?>"
-     data-tab="<?php echo $isPending ? 'pending' : 'classified'; ?>">
-
+     data-tab="<?php echo $isPending ? 'pending' : 'classified'; ?>"
+     data-classification="<?php echo htmlspecialchars($fb['sentiment'] ?? ''); ?>"></div>
   <div class="fbc-header">
     <div>
       <div class="fbc-hostel">
@@ -30,6 +30,42 @@
       <span class="badge badge-red">✗ Negative</span>
     <?php else: ?>
       <span class="badge badge-amber"> Pending</span>
+    <?php endif; ?>
+    <!-- Admin response -->
+  <div class="fbc-response" id="fbc-response-<?php echo $fb['feedbackId']; ?>">
+    <?php if (!empty($fb['adminResponse'])): ?>
+      <div class="fbc-response-existing" id="fbc-response-view-<?php echo $fb['feedbackId']; ?>">
+        <div class="fbc-meta" style="margin-top:10px;">
+          Admin response Â· <?php echo date('j M Y', strtotime($fb['respondedAt'])); ?>
+        </div>
+        <p class="fbc-text" style="background:var(--gray-50); padding:10px; border-radius:8px;">
+          <?php echo nl2br(htmlspecialchars($fb['adminResponse'])); ?>
+        </p>
+        <button class="btn btn-outline btn-sm"
+                onclick="showResponseForm(<?php echo $fb['feedbackId']; ?>)">
+          Edit Response
+        </button>
+      </div>
+      <div class="fbc-response-form" id="fbc-response-form-<?php echo $fb['feedbackId']; ?>" style="display:none;">
+        <textarea id="fbc-response-input-<?php echo $fb['feedbackId']; ?>"
+                  class="form-control" rows="2"
+                  style="margin-top:10px;"><?php echo htmlspecialchars($fb['adminResponse']); ?></textarea>
+        <button class="btn btn-primary btn-sm" style="margin-top:8px;"
+                onclick="submitFeedbackResponse(<?php echo $fb['feedbackId']; ?>)">
+          Save Response
+        </button>
+      </div>
+    <?php else: ?>
+      <div class="fbc-response-form" id="fbc-response-form-<?php echo $fb['feedbackId']; ?>">
+        <textarea id="fbc-response-input-<?php echo $fb['feedbackId']; ?>"
+                  class="form-control" rows="2"
+                  style="margin-top:10px;"
+                  placeholder="Write a response to this student..."></textarea>
+        <button class="btn btn-primary btn-sm" style="margin-top:8px;"
+                onclick="submitFeedbackResponse(<?php echo $fb['feedbackId']; ?>)">
+          Send Response
+        </button>
+      </div>
     <?php endif; ?>
   </div>
 
