@@ -1,15 +1,15 @@
 // assets/js/detail.js
 // Leaflet map + travel times for hostel detail page
 //
-// NOTE: the public OSRM demo server (router.project-osrm.org) only
-// reliably serves the DRIVING profile. Requests to /route/v1/walking/
-// against it get routed through the same car engine, which is why
-// walking and driving times used to come back identical. Walking
-// times below use OpenRouteService instead, which has a real foot
-// profile on its free tier. Sign up for a key at openrouteservice.org
-// and put it in ORS_API_KEY.
-
-const ORS_API_KEY = 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImFhYTMzMWIzMWE5OTQ4YzJhNjlhZWE0MDFmNGYxZmY4IiwiaCI6Im11cm11cjY0In0='; // TODO: set this
+// NOTE: walking directions are fetched via our own server-side proxy
+// at api/walking_route.php, which forwards the request to
+// OpenRouteService. We can't call OpenRouteService directly from the
+// browser — ORS doesn't return an Access-Control-Allow-Origin header
+// for localhost, so the request gets blocked by CORS. Proxying
+// through our backend also keeps the ORS API key off the client.
+//
+// Driving times still use the public OSRM demo server directly, since
+// that one does allow direct browser requests.
 
 // Strathmore University main gate coordinates
 const STRATHMORE = { lat: -1.3100, lng: 36.8126 };
@@ -146,34 +146,17 @@ async function fetchDrivingRoute(lat, lng) {
   }
 }
 
-// ── Walking route via OpenRouteService ──
-// (the public OSRM demo doesn't have a real foot profile, so we use
-// a different provider here instead of pretending OSRM supports it)
+// ── Walking route via our own backend proxy (api/walking_route.php) ──
+// (avoids a browser CORS block from calling OpenRouteService directly,
+// and keeps the ORS API key off the client)
 async function fetchWalkingRoute(lat, lng) {
   const walkEl  = document.getElementById('walkDuration');
   const walkDEl = document.getElementById('walkDistance');
 
-  if (!ORS_API_KEY || ORS_API_KEY === 'YOUR_OPENROUTESERVICE_API_KEY') {
-    if (walkEl) walkEl.textContent = 'Unavailable';
-    console.warn('OpenRouteService API key not configured — walking times disabled.');
-    return;
-  }
+  const walkUrl =
+    `/SU-Housing/api/walking_route.php?lat=${lat}&lng=${lng}`;
 
-  const walkUrl = 'https://api.openrouteservice.org/v2/directions/foot-walking/geojson';
-
-  const walkRes = await fetch(walkUrl, {
-    method: 'POST',
-    headers: {
-      'Authorization': ORS_API_KEY,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      coordinates: [
-        [STRATHMORE.lng, STRATHMORE.lat],
-        [lng, lat],
-      ],
-    }),
-  });
+  const walkRes  = await fetch(walkUrl);
   const walkData = await walkRes.json();
 
   const feature = walkData?.features?.[0];
